@@ -22,7 +22,7 @@ import {
 interface MenuItem {
   name: string
   href: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
 }
 
 const menuItems: MenuItem[] = [

@@ -28,7 +28,7 @@ const users = [
   { id: 4, name: '赵六', email: 'zhaoliu@minitap.com', role: '技术支持', status: '活跃', lastLogin: '5分钟前' }
 ]
 
-const roles = ['超级管理员', '运营管理员', '场地管理员', '技术支持', '只读用户']
+// const roles = ['超级管理员', '运营管理员', '场地管理员', '技术支持', '只读用户']
 
 const backupHistory = [
   { id: 1, type: 'auto', date: '2024-01-20 02:00:00', size: '2.3 GB', status: 'success' },
@@ -76,6 +76,12 @@ export default function SettingsPage() {
   const [autoBackup, setAutoBackup] = useState(true)
   const [backupTime, setBackupTime] = useState('02:00')
   const [backupRetention, setBackupRetention] = useState('30')
+  
+  // 安全设置
+  const [minPasswordLength, setMinPasswordLength] = useState('8')
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState('5')
+  const [sessionTimeout, setSessionTimeout] = useState('30')
+  const [passwordExpireDays, setPasswordExpireDays] = useState('90')
 
   const handleSaveBasicSettings = () => {
     console.log('保存基本设置')
@@ -292,7 +298,8 @@ export default function SettingsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">密码最小长度</label>
           <input
             type="number"
-            defaultValue="8"
+            value={minPasswordLength}
+            onChange={(e) => setMinPasswordLength(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -300,7 +307,8 @@ export default function SettingsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">登录失败锁定次数</label>
           <input
             type="number"
-            defaultValue="5"
+            value={maxLoginAttempts}
+            onChange={(e) => setMaxLoginAttempts(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -308,7 +316,8 @@ export default function SettingsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">会话超时时间(分钟)</label>
           <input
             type="number"
-            defaultValue="30"
+            value={sessionTimeout}
+            onChange={(e) => setSessionTimeout(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -316,7 +325,8 @@ export default function SettingsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">密码过期天数</label>
           <input
             type="number"
-            defaultValue="90"
+            value={passwordExpireDays}
+            onChange={(e) => setPasswordExpireDays(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

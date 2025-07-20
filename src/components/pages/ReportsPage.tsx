@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { 
   ChartBarIcon,
   DocumentArrowDownIcon,
-  CalendarDaysIcon,
-  FunnelIcon,
   PrinterIcon,
   ShareIcon
 } from '@heroicons/react/24/outline'
