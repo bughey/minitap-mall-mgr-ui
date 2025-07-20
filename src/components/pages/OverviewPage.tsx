@@ -1,15 +1,19 @@
 'use client'
 
 import { 
-  ComputerDesktopIcon,
-  CurrencyDollarIcon,
-  ExclamationTriangleIcon,
-  PlayIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  DocumentArrowDownIcon,
-  CogIcon
-} from '@heroicons/react/24/outline'
+  Computer,
+  DollarSign,
+  AlertTriangle,
+  Play,
+  Plus,
+  Search,
+  Download,
+  Settings
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
 
 // 模拟数据
 const stats = [
@@ -17,28 +21,28 @@ const stats = [
     title: '总设备数',
     value: '158',
     subtitle: '台设备',
-    icon: ComputerDesktopIcon,
+    icon: Computer,
     color: 'blue'
   },
   {
     title: '今日活跃',
     value: '142',
     subtitle: '台设备',
-    icon: PlayIcon,
+    icon: Play,
     color: 'green'
   },
   {
     title: '今日收益',
     value: '¥12,580',
     subtitle: '比昨日+8.2%',
-    icon: CurrencyDollarIcon,
+    icon: DollarSign,
     color: 'yellow'
   },
   {
     title: '维护设备',
     value: '3',
     subtitle: '需要处理',
-    icon: ExclamationTriangleIcon,
+    icon: AlertTriangle,
     color: 'red'
   }
 ]
@@ -74,114 +78,161 @@ export default function OverviewPage() {
           <p className="text-gray-600 mt-1">游戏机台运营管理概览</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <PlusIcon className="w-4 h-4 mr-2" />
+          <Button variant="outline" size="sm">
+            <Plus className="w-4 h-4 mr-2" />
             添加设备
-          </button>
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <MagnifyingGlassIcon className="w-4 h-4 mr-2" />
+          </Button>
+          <Button variant="outline" size="sm">
+            <Search className="w-4 h-4 mr-2" />
             搜索
-          </button>
-          <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />
             导出报表
-          </button>
-          <button className="inline-flex items-center px-3 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
-            <CogIcon className="w-4 h-4 mr-2" />
+          </Button>
+          <Button size="sm">
+            <Settings className="w-4 h-4 mr-2" />
             系统设置
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* 关键指标卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.title} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+          <Card key={stat.title} className="relative overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">{stat.title}</CardTitle>
               <div className={`
-                p-3 rounded-lg
-                ${stat.color === 'blue' ? 'bg-blue-100 text-blue-600' : ''}
-                ${stat.color === 'green' ? 'bg-green-100 text-green-600' : ''}
-                ${stat.color === 'yellow' ? 'bg-yellow-100 text-yellow-600' : ''}
-                ${stat.color === 'red' ? 'bg-red-100 text-red-600' : ''}
+                p-3 rounded-xl shadow-md
+                ${stat.color === 'blue' ? 'bg-blue-500 text-white' : ''}
+                ${stat.color === 'green' ? 'bg-green-500 text-white' : ''}
+                ${stat.color === 'yellow' ? 'bg-yellow-500 text-white' : ''}
+                ${stat.color === 'red' ? 'bg-red-500 text-white' : ''}
               `}>
-                <stat.icon className="w-6 h-6" />
+                <stat.icon className="w-5 h-5" />
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-400">{stat.subtitle}</p>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+              <p className={`text-xs font-medium
+                ${stat.color === 'blue' ? 'text-blue-600' : ''}
+                ${stat.color === 'green' ? 'text-green-600' : ''}
+                ${stat.color === 'yellow' ? 'text-yellow-600' : ''}
+                ${stat.color === 'red' ? 'text-red-600' : ''}
+              `}>{stat.subtitle}</p>
+            </CardContent>
+            <div className={`absolute bottom-0 left-0 right-0 h-1
+              ${stat.color === 'blue' ? 'bg-blue-500' : ''}
+              ${stat.color === 'green' ? 'bg-green-500' : ''}
+              ${stat.color === 'yellow' ? 'bg-yellow-500' : ''}
+              ${stat.color === 'red' ? 'bg-red-500' : ''}
+            `}></div>
+          </Card>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 场地设备分布 */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">场地设备分布</h2>
-          <div className="space-y-4">
-            {venues.map((venue) => (
-              <div key={venue.name} className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-900">{venue.name}</span>
-                    <span className="text-sm text-gray-500">{venue.active}/{venue.total}</span>
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">场地设备分布</CardTitle>
+            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+              <span className="text-sm">查看详情</span>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {venues.map((venue, index) => (
+              <div key={venue.name} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      index === 0 ? 'bg-blue-500' : 
+                      index === 1 ? 'bg-green-500' : 
+                      index === 2 ? 'bg-orange-500' : 
+                      index === 3 ? 'bg-purple-500' : 'bg-gray-500'
+                    }`}></div>
+                    <span className="font-medium">{venue.name}店</span>
+                    <Badge variant="outline" className="text-xs">运营中</Badge>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${venue.rate}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-gray-500">活跃率 {venue.rate}%</span>
-                    <span className="text-xs text-gray-500">总计 {venue.total} 台</span>
-                  </div>
+                  <span className="text-sm font-semibold">{venue.total} 台设备</span>
+                </div>
+                <Progress value={venue.rate} className="h-2" />
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>活跃: {venue.active}台</span>
+                  <span>待玩: {venue.total - venue.active}台</span>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* 实时警告 */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">实时警告</h2>
-          <div className="space-y-3">
-            {alerts.map((alert, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
-                <div className={`
-                  w-2 h-2 rounded-full mt-2 flex-shrink-0
-                  ${alert.type === 'warning' ? 'bg-yellow-500' : ''}
-                  ${alert.type === 'error' ? 'bg-red-500' : ''}
-                  ${alert.type === 'success' ? 'bg-green-500' : ''}
-                `}></div>
+        <div className="space-y-6">
+          {/* 实时警告 */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold flex items-center space-x-2">
+                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                <span>实时警告</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start space-x-3 p-3 rounded-lg bg-orange-50 border-l-4 border-orange-500">
+                <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">{alert.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                  <p className="text-sm font-medium">设备维护</p>
+                  <p className="text-sm text-gray-600">万达广场店 - A区设备#12</p>
+                  <p className="text-xs text-gray-500 mt-1">2分钟前</p>
                 </div>
               </div>
-            ))}
-          </div>
-          <button className="w-full mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium">
-            查看全部警告
-          </button>
+            </CardContent>
+          </Card>
+
+          {/* 快速操作 */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">快速操作</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
+                  <Plus className="w-5 h-5 mb-2" />
+                  <span className="text-sm">添加设备</span>
+                </Button>
+                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
+                  <Search className="w-5 h-5 mb-2" />
+                  <span className="text-sm">设备搜索</span>
+                </Button>
+                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
+                  <Download className="w-5 h-5 mb-2" />
+                  <span className="text-sm">导出报表</span>
+                </Button>
+                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
+                  <Settings className="w-5 h-5 mb-2" />
+                  <span className="text-sm">系统设置</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* 今日数据统计 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">今日数据统计</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {todayData.map((item) => (
-            <div key={item.label} className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{item.value}</p>
-              <p className="text-sm text-gray-500 mt-1">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">今日数据</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {todayData.map((item, index) => (
+              <div key={item.label} className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">{item.value}</p>
+                <p className="text-sm text-gray-600 mt-1">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

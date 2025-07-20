@@ -2,15 +2,21 @@
 
 import { useState } from 'react'
 import { 
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  EyeIcon,
-  PencilIcon,
-  PlayIcon,
-  ArrowPathIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon
-} from '@heroicons/react/24/outline'
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Play,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 // 模拟设备数据
 const devices = [
@@ -79,23 +85,11 @@ const deviceTypes = ['全部类型', '娃娃机', '推币机', '夹娃娃', '弹
 function getStatusBadge(status: string) {
   switch (status) {
     case 'active':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          活跃
-        </span>
-      )
+      return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">活跃</Badge>
     case 'idle':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          待玩
-        </span>
-      )
+      return <Badge variant="secondary">待玩</Badge>
     case 'maintenance':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          维护中
-        </span>
-      )
+      return <Badge variant="destructive">维护中</Badge>
     default:
       return null
   }
@@ -119,222 +113,206 @@ export default function DevicesPage() {
       </div>
 
       {/* 筛选器 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <FunnelIcon className="w-5 h-5 text-gray-400" />
-          <span className="text-sm font-medium text-gray-700">筛选条件</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          {/* 场地筛选 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">场地</label>
-            <select 
-              value={selectedVenue}
-              onChange={(e) => setSelectedVenue(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {venues.map(venue => (
-                <option key={venue} value={venue}>{venue}</option>
-              ))}
-            </select>
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            筛选条件
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            {/* 场地筛选 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">场地</label>
+              <Select value={selectedVenue} onValueChange={setSelectedVenue}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {venues.map(venue => (
+                    <SelectItem key={venue} value={venue}>{venue}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* 分组筛选 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">分组</label>
-            <select 
-              value={selectedGroup}
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {groups.map(group => (
-                <option key={group} value={group}>{group}</option>
-              ))}
-            </select>
-          </div>
+            {/* 分组筛选 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">分组</label>
+              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map(group => (
+                    <SelectItem key={group} value={group}>{group}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* 状态筛选 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
-            <select 
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {statuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
+            {/* 状态筛选 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">状态</label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* 设备类型筛选 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">设备类型</label>
-            <select 
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {deviceTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
+            {/* 设备类型筛选 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">设备类型</label>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {deviceTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* 搜索框 */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">搜索</label>
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="搜索设备ID、名称..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* 搜索框 */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium mb-2">搜索</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="搜索设备ID、名称..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* 设备表格 */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">设备信息</h2>
-            <div className="text-sm text-gray-500">
+            <CardTitle>设备信息</CardTitle>
+            <div className="text-sm text-muted-foreground">
               共 {devices.length} 台设备
             </div>
           </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  设备信息
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  场地/分组
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  类型
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  状态
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  活跃时长
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  今日收益
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  最后更新
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {devices.map((device) => (
-                <tr key={device.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{device.id}</div>
-                      <div className="text-sm text-gray-500">{device.name}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm text-gray-900">{device.venue}</div>
-                      <div className="text-sm text-gray-500">{device.group}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {device.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(device.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {device.activeTime}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {device.todayRevenue}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {device.lastUpdate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button className="text-yellow-600 hover:text-yellow-900">
-                        <PlayIcon className="w-4 h-4" />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        <ArrowPathIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 分页 */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              上一页
-            </button>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              下一页
-            </button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>设备信息</TableHead>
+                  <TableHead>场地/分组</TableHead>
+                  <TableHead>类型</TableHead>
+                  <TableHead>状态</TableHead>
+                  <TableHead>活跃时长</TableHead>
+                  <TableHead>今日收益</TableHead>
+                  <TableHead>最后更新</TableHead>
+                  <TableHead>操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {devices.map((device) => (
+                  <TableRow key={device.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{device.id}</div>
+                        <div className="text-sm text-muted-foreground">{device.name}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div>{device.venue}</div>
+                        <div className="text-sm text-muted-foreground">{device.group}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{device.type}</TableCell>
+                    <TableCell>{getStatusBadge(device.status)}</TableCell>
+                    <TableCell>{device.activeTime}</TableCell>
+                    <TableCell className="font-medium">{device.todayRevenue}</TableCell>
+                    <TableCell className="text-muted-foreground">{device.lastUpdate}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Play className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <RotateCcw className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                显示第 <span className="font-medium">1</span> 到{' '}
-                <span className="font-medium">{Math.min(itemsPerPage, devices.length)}</span> 条，共{' '}
-                <span className="font-medium">{devices.length}</span> 条记录
-              </p>
+
+          {/* 分页 */}
+          <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center justify-between sm:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              >
+                上一页
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                下一页
+              </Button>
             </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  显示第 <span className="font-medium">1</span> 到{' '}
+                  <span className="font-medium">{Math.min(itemsPerPage, devices.length)}</span> 条，共{' '}
+                  <span className="font-medium">{devices.length}</span> 条记录
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                 >
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </button>
-                <button
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                 >
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </nav>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
