@@ -1,19 +1,10 @@
-'use client'
+'use client';
 
-import { 
-  Computer,
-  DollarSign,
-  AlertTriangle,
-  Play,
-  Plus,
-  Search,
-  Download,
-  Settings
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
+import { Computer, DollarSign, AlertTriangle, Play, Plus, Search, Download, Settings } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 // 模拟数据
 const stats = [
@@ -45,7 +36,7 @@ const stats = [
     icon: AlertTriangle,
     color: 'red'
   }
-]
+];
 
 const venues = [
   { name: '万达广场', total: 42, active: 38, rate: 90 },
@@ -53,20 +44,20 @@ const venues = [
   { name: '龙湖天街', total: 38, active: 35, rate: 92 },
   { name: '印象城', total: 28, active: 25, rate: 89 },
   { name: '大悦城', total: 15, active: 12, rate: 80 }
-]
+];
 
 const alerts = [
   { message: '万达广场 A区娃娃机-001 需要维护', time: '2分钟前', type: 'warning' },
   { message: '银泰城 B区推币机-005 电量不足', time: '5分钟前', type: 'error' },
   { message: '龙湖天街 C区夹娃娃-012 固件更新完成', time: '8分钟前', type: 'success' }
-]
+];
 
 const todayData = [
   { label: '投币数', value: '2,847' },
   { label: '退分数', value: '892' },
   { label: '活跃设备', value: '142' },
   { label: '投币次数', value: '4,231' }
-]
+];
 
 export default function OverviewPage() {
   return (
@@ -77,7 +68,7 @@ export default function OverviewPage() {
           <h1 className="text-2xl font-bold text-gray-900">系统总览</h1>
           <p className="text-gray-600 mt-1">游戏机台运营管理概览</p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
+        {/* <div className="mt-4 sm:mt-0 flex space-x-3">
           <Button variant="outline" size="sm">
             <Plus className="w-4 h-4 mr-2" />
             添加设备
@@ -94,7 +85,7 @@ export default function OverviewPage() {
             <Settings className="w-4 h-4 mr-2" />
             系统设置
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* 关键指标卡片 */}
@@ -103,7 +94,8 @@ export default function OverviewPage() {
           <Card key={stat.title} className="relative overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">{stat.title}</CardTitle>
-              <div className={`
+              <div
+                className={`
                 p-3 rounded-xl shadow-md
                 ${stat.color === 'blue' ? 'bg-blue-500 text-white' : ''}
                 ${stat.color === 'green' ? 'bg-green-500 text-white' : ''}
@@ -115,14 +107,18 @@ export default function OverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-              <p className={`text-xs font-medium
+              <p
+                className={`text-xs font-medium
                 ${stat.color === 'blue' ? 'text-blue-600' : ''}
                 ${stat.color === 'green' ? 'text-green-600' : ''}
                 ${stat.color === 'yellow' ? 'text-yellow-600' : ''}
                 ${stat.color === 'red' ? 'text-red-600' : ''}
-              `}>{stat.subtitle}</p>
+              `}>
+                {stat.subtitle}
+              </p>
             </CardContent>
-            <div className={`absolute bottom-0 left-0 right-0 h-1
+            <div
+              className={`absolute bottom-0 left-0 right-0 h-1
               ${stat.color === 'blue' ? 'bg-blue-500' : ''}
               ${stat.color === 'green' ? 'bg-green-500' : ''}
               ${stat.color === 'yellow' ? 'bg-yellow-500' : ''}
@@ -146,14 +142,22 @@ export default function OverviewPage() {
               <div key={venue.name} className="p-4 bg-gray-50 rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      index === 0 ? 'bg-blue-500' : 
-                      index === 1 ? 'bg-green-500' : 
-                      index === 2 ? 'bg-orange-500' : 
-                      index === 3 ? 'bg-purple-500' : 'bg-gray-500'
-                    }`}></div>
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        index === 0
+                          ? 'bg-blue-500'
+                          : index === 1
+                          ? 'bg-green-500'
+                          : index === 2
+                          ? 'bg-orange-500'
+                          : index === 3
+                          ? 'bg-purple-500'
+                          : 'bg-gray-500'
+                      }`}></div>
                     <span className="font-medium">{venue.name}店</span>
-                    <Badge variant="outline" className="text-xs">运营中</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      运营中
+                    </Badge>
                   </div>
                   <span className="text-sm font-semibold">{venue.total} 台设备</span>
                 </div>
@@ -234,5 +238,5 @@ export default function OverviewPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

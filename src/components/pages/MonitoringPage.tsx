@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { 
+import { useState, useEffect } from 'react';
+import {
   CurrencyDollarIcon,
   ComputerDesktopIcon,
   PlayIcon,
@@ -10,7 +10,7 @@ import {
   DocumentArrowDownIcon,
   StopIcon,
   ArrowPathIcon
-} from '@heroicons/react/24/outline'
+} from '@heroicons/react/24/outline';
 
 // 模拟实时数据
 const initialStats = {
@@ -18,7 +18,7 @@ const initialStats = {
   activeDevices: 142,
   gameCount: 1847,
   systemLatency: 23
-}
+};
 
 const venueData = [
   {
@@ -53,7 +53,7 @@ const venueData = [
     latency: 34,
     status: 'warning'
   }
-]
+];
 
 const initialAlerts = [
   { id: 1, message: '万达广场 A区娃娃机-001 连接超时', time: '刚刚', type: 'error', venue: '万达广场' },
@@ -61,54 +61,70 @@ const initialAlerts = [
   { id: 3, message: '龙湖天街系统延迟异常', time: '2分钟前', type: 'warning', venue: '龙湖天街' },
   { id: 4, message: '印象城 D区弹珠机-008 固件更新成功', time: '3分钟前', type: 'success', venue: '印象城' },
   { id: 5, message: '万达广场收益达到日目标', time: '5分钟前', type: 'info', venue: '万达广场' }
-]
+];
 
 function getAlertIcon(type: string) {
   switch (type) {
     case 'error':
-      return <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+      return <div className="w-2 h-2 bg-red-500 rounded-full"></div>;
     case 'warning':
-      return <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+      return <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>;
     case 'success':
-      return <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+      return <div className="w-2 h-2 bg-green-500 rounded-full"></div>;
     case 'info':
-      return <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+      return <div className="w-2 h-2 bg-blue-500 rounded-full"></div>;
     default:
-      return <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+      return <div className="w-2 h-2 bg-gray-500 rounded-full"></div>;
   }
 }
 
 function getStatusBadge(status: string) {
   switch (status) {
     case 'normal':
-      return <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">正常</span>
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          正常
+        </span>
+      );
     case 'warning':
-      return <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">告警</span>
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          告警
+        </span>
+      );
     case 'error':
-      return <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">异常</span>
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          异常
+        </span>
+      );
     default:
-      return <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">未知</span>
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          未知
+        </span>
+      );
   }
 }
 
 export default function MonitoringPage() {
-  const [stats, setStats] = useState(initialStats)
-  const [alerts, setAlerts] = useState(initialAlerts)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
-  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [stats, setStats] = useState(initialStats);
+  const [alerts, setAlerts] = useState(initialAlerts);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   // 模拟实时数据更新
   useEffect(() => {
-    if (!autoRefresh) return
+    if (!autoRefresh) return;
 
     const interval = setInterval(() => {
-      setStats(prev => ({
+      setStats((prev) => ({
         realTimeRevenue: prev.realTimeRevenue + Math.floor(Math.random() * 50) + 10,
         activeDevices: prev.activeDevices + (Math.random() > 0.5 ? 1 : -1),
         gameCount: prev.gameCount + Math.floor(Math.random() * 10) + 5,
         systemLatency: Math.floor(Math.random() * 20) + 15
-      }))
-      setLastUpdate(new Date())
+      }));
+      setLastUpdate(new Date());
 
       // 随机添加新告警
       if (Math.random() > 0.8) {
@@ -118,13 +134,13 @@ export default function MonitoringPage() {
           time: '刚刚',
           type: ['error', 'warning', 'success', 'info'][Math.floor(Math.random() * 4)],
           venue: ['万达广场', '银泰城', '龙湖天街', '印象城'][Math.floor(Math.random() * 4)]
-        }
-        setAlerts(prev => [newAlert, ...prev.slice(0, 9)])
+        };
+        setAlerts((prev) => [newAlert, ...prev.slice(0, 9)]);
       }
-    }, 5000)
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [autoRefresh])
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
 
   return (
     <div className="space-y-6">
@@ -139,7 +155,7 @@ export default function MonitoringPage() {
             <ClockIcon className="w-4 h-4 mr-1" />
             最后更新: {lastUpdate.toLocaleTimeString()}
           </div>
-          <button
+          {/* <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium ${
               autoRefresh 
@@ -157,7 +173,7 @@ export default function MonitoringPage() {
           <button className="inline-flex items-center px-3 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700">
             <StopIcon className="w-4 h-4 mr-2" />
             紧急停止
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -258,11 +274,11 @@ export default function MonitoringPage() {
             <h2 className="text-lg font-medium text-gray-900">实时警报</h2>
             <div className="flex items-center text-sm text-gray-500">
               <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-              {alerts.filter(alert => alert.type === 'error').length} 错误,{' '}
-              {alerts.filter(alert => alert.type === 'warning').length} 警告
+              {alerts.filter((alert) => alert.type === 'error').length} 错误,{' '}
+              {alerts.filter((alert) => alert.type === 'warning').length} 警告
             </div>
           </div>
-          
+
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {alerts.map((alert) => (
               <div key={alert.id} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
@@ -278,12 +294,12 @@ export default function MonitoringPage() {
               </div>
             ))}
           </div>
-          
+
           <button className="w-full mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium">
             查看全部警报历史
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
