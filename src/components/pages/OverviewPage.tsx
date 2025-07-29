@@ -55,8 +55,8 @@ const alerts = [
 const todayData = [
   { label: '投币数', value: '2,847' },
   { label: '退分数', value: '892' },
-  { label: '活跃设备', value: '142' },
-  { label: '投币次数', value: '4,231' }
+  { label: '退币数', value: '142' },
+  { label: '投币次数', value: '1,231' }
 ];
 
 export default function OverviewPage() {
