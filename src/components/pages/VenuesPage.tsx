@@ -1,14 +1,17 @@
 'use client'
 
 import { 
-  BuildingOfficeIcon,
-  ComputerDesktopIcon,
-  CurrencyDollarIcon,
-  PlusIcon,
-  PencilIcon,
-  EyeIcon,
-  WrenchScrewdriverIcon
-} from '@heroicons/react/24/outline'
+  Building,
+  Computer,
+  DollarSign,
+  Plus,
+  Edit,
+  Eye,
+  Wrench
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 // 模拟场地数据
 const venues = [
@@ -77,26 +80,11 @@ const venues = [
 function getStatusBadge(status: string) {
   switch (status) {
     case 'online':
-      return (
-        <div className="flex items-center">
-          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-          <span className="text-sm text-green-700">在线</span>
-        </div>
-      )
+      return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">在线</Badge>
     case 'maintenance':
-      return (
-        <div className="flex items-center">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-          <span className="text-sm text-yellow-700">维护中</span>
-        </div>
-      )
+      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">维护中</Badge>
     case 'offline':
-      return (
-        <div className="flex items-center">
-          <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-          <span className="text-sm text-red-700">离线</span>
-        </div>
-      )
+      return <Badge variant="destructive">离线</Badge>
     default:
       return null
   }
@@ -111,26 +99,25 @@ export default function VenuesPage() {
           <h1 className="text-2xl font-bold text-gray-900">场地管理</h1>
           <p className="text-gray-600 mt-1">管理所有运营场地和设备分组</p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
-          <PlusIcon className="w-4 h-4 mr-2" />
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
           添加场地
-        </button>
+        </Button>
       </div>
 
       {/* 场地卡片网格 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         {venues.map((venue) => (
-          <div key={venue.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
-            {/* 场地头部信息 */}
-            <div className="p-6 border-b border-gray-200">
+          <Card key={venue.id} className="hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="border-b">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <BuildingOfficeIcon className="w-6 h-6 text-blue-600" />
+                    <Building className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{venue.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{venue.address}</p>
+                    <CardTitle className="text-lg">{venue.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">{venue.address}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -142,103 +129,105 @@ export default function VenuesPage() {
               <div className="grid grid-cols-3 gap-4 mt-6">
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-1">
-                    <ComputerDesktopIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">设备总数</span>
+                    <Computer className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">设备总数</span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{venue.totalDevices}</p>
+                  <p className="text-2xl font-bold mt-1">{venue.totalDevices}</p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-1">
                     <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-gray-500">活跃设备</span>
+                    <span className="text-sm text-muted-foreground">活跃设备</span>
                   </div>
                   <p className="text-2xl font-bold text-green-600 mt-1">{venue.activeDevices}</p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-1">
-                    <CurrencyDollarIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">今日收益</span>
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">今日收益</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-600 mt-1">¥{venue.todayRevenue}</p>
                 </div>
               </div>
-            </div>
+            </CardHeader>
 
-            {/* 设备分组 */}
-            <div className="p-6">
+            <CardContent className="p-6">
+              {/* 设备分组 */}
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-medium text-gray-900">设备分组</h4>
-                <button className="text-sm text-blue-600 hover:text-blue-800">
-                  <PlusIcon className="w-4 h-4 inline mr-1" />
+                <h4 className="text-sm font-medium">设备分组</h4>
+                <Button variant="ghost" size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
                   添加分组
-                </button>
+                </Button>
               </div>
               
               <div className="space-y-3">
                 {venue.groups.map((group, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
-                      <span className="text-sm font-medium text-gray-900">{group.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">{group.devices} 台设备</span>
+                      <span className="text-sm font-medium">{group.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{group.devices} 台设备</span>
                     </div>
                     <div className="flex space-x-2">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Edit className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* 操作按钮 */}
-            <div className="px-6 py-4 bg-gray-50 rounded-b-lg">
-              <div className="flex justify-between">
+              {/* 操作按钮 */}
+              <div className="flex justify-between mt-6 pt-4 border-t">
                 <div className="flex space-x-2">
-                  <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                    <EyeIcon className="w-3 h-3 mr-1" />
+                  <Button variant="outline" size="sm">
+                    <Eye className="w-3 h-3 mr-1" />
                     查看详情
-                  </button>
-                  <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                    <PencilIcon className="w-3 h-3 mr-1" />
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-3 h-3 mr-1" />
                     编辑
-                  </button>
+                  </Button>
                 </div>
-                <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                  <WrenchScrewdriverIcon className="w-3 h-3 mr-1" />
+                <Button variant="outline" size="sm">
+                  <Wrench className="w-3 h-3 mr-1" />
                   维护模式
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* 统计信息 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">场地统计</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-gray-900">4</p>
-            <p className="text-sm text-gray-500 mt-1">总场地数</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>场地统计</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold">4</p>
+              <p className="text-sm text-muted-foreground mt-1">总场地数</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">143</p>
+              <p className="text-sm text-muted-foreground mt-1">总设备数</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-blue-600">130</p>
+              <p className="text-sm text-muted-foreground mt-1">活跃设备</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-yellow-600">¥11,525</p>
+              <p className="text-sm text-muted-foreground mt-1">今日总收益</p>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">143</p>
-            <p className="text-sm text-gray-500 mt-1">总设备数</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-blue-600">130</p>
-            <p className="text-sm text-gray-500 mt-1">活跃设备</p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-yellow-600">¥11,525</p>
-            <p className="text-sm text-gray-500 mt-1">今日总收益</p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
