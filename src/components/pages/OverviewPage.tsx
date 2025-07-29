@@ -211,10 +211,10 @@ export default function OverviewPage() {
                   <Download className="w-5 h-5 mb-2" />
                   <span className="text-sm">导出报表</span>
                 </Button>
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
+                {/* <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
                   <Settings className="w-5 h-5 mb-2" />
                   <span className="text-sm">系统设置</span>
-                </Button>
+                </Button> */}
               </div>
             </CardContent>
           </Card>
