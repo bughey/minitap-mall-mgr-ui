@@ -1,22 +1,13 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { 
-  Search,
-  Filter,
-  Eye,
-  Edit,
-  Play,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useState } from 'react';
+import { Search, Filter, Eye, Edit, Play, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 // 模拟设备数据
 const devices = [
@@ -32,7 +23,7 @@ const devices = [
     lastUpdate: '2分钟前'
   },
   {
-    id: 'DEV002', 
+    id: 'DEV002',
     name: '推币机-005',
     venue: '银泰城',
     group: 'B区推币机',
@@ -75,34 +66,38 @@ const devices = [
     todayRevenue: '¥356',
     lastUpdate: '刚刚'
   }
-]
+];
 
-const venues = ['全部场地', '万达广场', '银泰城', '龙湖天街', '印象城', '大悦城']
-const groups = ['全部分组', 'A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机']
-const statuses = ['全部状态', '活跃', '待玩', '维护中']
-const deviceTypes = ['全部类型', '娃娃机', '推币机', '夹娃娃', '弹珠机', '抓娃娃']
+const venues = ['全部场地', '万达广场', '银泰城', '龙湖天街', '印象城', '大悦城'];
+const groups = ['全部分组', 'A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机'];
+const statuses = ['全部状态', '活跃', '待玩', '维护中'];
+const deviceTypes = ['全部类型', '娃娃机', '推币机', '夹娃娃', '弹珠机', '抓娃娃'];
 
 function getStatusBadge(status: string) {
   switch (status) {
     case 'active':
-      return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">活跃</Badge>
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">
+          活跃
+        </Badge>
+      );
     case 'idle':
-      return <Badge variant="secondary">待玩</Badge>
+      return <Badge variant="secondary">待玩</Badge>;
     case 'maintenance':
-      return <Badge variant="destructive">维护中</Badge>
+      return <Badge variant="destructive">维护中</Badge>;
     default:
-      return null
+      return null;
   }
 }
 
 export default function DevicesPage() {
-  const [selectedVenue, setSelectedVenue] = useState('全部场地')
-  const [selectedGroup, setSelectedGroup] = useState('全部分组')
-  const [selectedStatus, setSelectedStatus] = useState('全部状态')
-  const [selectedType, setSelectedType] = useState('全部类型')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const [selectedVenue, setSelectedVenue] = useState('全部场地');
+  const [selectedGroup, setSelectedGroup] = useState('全部分组');
+  const [selectedStatus, setSelectedStatus] = useState('全部状态');
+  const [selectedType, setSelectedType] = useState('全部类型');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   return (
     <div className="space-y-6">
@@ -130,8 +125,10 @@ export default function DevicesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {venues.map(venue => (
-                    <SelectItem key={venue} value={venue}>{venue}</SelectItem>
+                  {venues.map((venue) => (
+                    <SelectItem key={venue} value={venue}>
+                      {venue}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -145,8 +142,10 @@ export default function DevicesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {groups.map(group => (
-                    <SelectItem key={group} value={group}>{group}</SelectItem>
+                  {groups.map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -160,8 +159,10 @@ export default function DevicesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {statuses.map(status => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  {statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -175,8 +176,10 @@ export default function DevicesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {deviceTypes.map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  {deviceTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -189,7 +192,7 @@ export default function DevicesPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="搜索设备ID、名称..."
+                  placeholder="搜索设备ID"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -205,9 +208,7 @@ export default function DevicesPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>设备信息</CardTitle>
-            <div className="text-sm text-muted-foreground">
-              共 {devices.length} 台设备
-            </div>
+            <div className="text-sm text-muted-foreground">共 {devices.length} 台设备</div>
           </div>
         </CardHeader>
         <CardContent>
@@ -248,17 +249,17 @@ export default function DevicesPage() {
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4" /> {/* 查看 */}
                         </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4" /> {/* 编辑 */}
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        {/* <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <Play className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <RotateCcw className="w-4 h-4" />
-                        </Button>
+                        </Button> */}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -270,18 +271,10 @@ export default function DevicesPage() {
           {/* 分页 */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center justify-between sm:hidden">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>
                 上一页
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage + 1)}>
                 下一页
               </Button>
             </div>
@@ -294,18 +287,10 @@ export default function DevicesPage() {
                 </p>
               </div>
               <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                >
+                <Button variant="outline" size="sm" onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage + 1)}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -314,5 +299,5 @@ export default function DevicesPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
