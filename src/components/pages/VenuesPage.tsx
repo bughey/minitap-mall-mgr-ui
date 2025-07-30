@@ -74,17 +74,17 @@ function getStatusBadge(status: string) {
     case 'online':
       return (
         <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">
-          在线
+          活跃
         </Badge>
       );
     case 'maintenance':
       return (
         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-          维护中
+          维护
         </Badge>
       );
     case 'offline':
-      return <Badge variant="destructive">离线</Badge>;
+      return <Badge variant="destructive">待玩</Badge>;
     default:
       return null;
   }
