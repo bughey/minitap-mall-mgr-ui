@@ -1,17 +1,9 @@
-'use client'
+'use client';
 
-import { 
-  Building,
-  Computer,
-  DollarSign,
-  Plus,
-  Edit,
-  Eye,
-  Wrench
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Building, Computer, DollarSign, Plus, Edit, Eye, Wrench } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 // 模拟场地数据
 const venues = [
@@ -75,18 +67,26 @@ const venues = [
       { name: 'D区弹珠机', devices: 4 }
     ]
   }
-]
+];
 
 function getStatusBadge(status: string) {
   switch (status) {
     case 'online':
-      return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">在线</Badge>
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">
+          在线
+        </Badge>
+      );
     case 'maintenance':
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">维护中</Badge>
+      return (
+        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+          维护中
+        </Badge>
+      );
     case 'offline':
-      return <Badge variant="destructive">离线</Badge>
+      return <Badge variant="destructive">离线</Badge>;
     default:
-      return null
+      return null;
   }
 }
 
@@ -120,9 +120,7 @@ export default function VenuesPage() {
                     <p className="text-sm text-muted-foreground mt-1">{venue.address}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusBadge(venue.status)}
-                </div>
+                <div className="flex items-center space-x-2">{getStatusBadge(venue.status)}</div>
               </div>
 
               {/* 关键指标 */}
@@ -160,7 +158,7 @@ export default function VenuesPage() {
                   添加分组
                 </Button>
               </div>
-              
+
               <div className="space-y-3">
                 {venue.groups.map((group, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -181,7 +179,7 @@ export default function VenuesPage() {
               </div>
 
               {/* 操作按钮 */}
-              <div className="flex justify-between mt-6 pt-4 border-t">
+              <div className="flex justify-between flex-row-reverse mt-6 pt-4 border-t">
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
                     <Eye className="w-3 h-3 mr-1" />
@@ -192,10 +190,10 @@ export default function VenuesPage() {
                     编辑
                   </Button>
                 </div>
-                <Button variant="outline" size="sm">
+                {/* <Button variant="outline" size="sm">
                   <Wrench className="w-3 h-3 mr-1" />
                   维护模式
-                </Button>
+                </Button> */}
               </div>
             </CardContent>
           </Card>
@@ -229,5 +227,5 @@ export default function VenuesPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
