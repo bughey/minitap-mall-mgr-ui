@@ -268,7 +268,7 @@ export default function MonitoringPage() {
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">实时收益</h3>
               <p className="text-2xl font-bold text-gray-900">¥{stats.realTimeRevenue.toLocaleString()}</p>
-              <p className="text-xs text-green-600">+¥245 (最近5分钟)</p>
+              <p className="text-xs text-green-600">+¥245 (最近1小时)</p>
             </div>
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function MonitoringPage() {
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">游戏次数</h3>
               <p className="text-2xl font-bold text-gray-900">{stats.gameCount.toLocaleString()}</p>
-              <p className="text-xs text-blue-600">+23 (最近5分钟)</p>
+              <p className="text-xs text-blue-600">+23 (最近1小时)</p>
             </div>
           </div>
         </div>
