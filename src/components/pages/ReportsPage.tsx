@@ -24,10 +24,50 @@ const deviceTypes = ['全部类型', '娃娃机', '推币机', '夹娃娃', '弹
 
 // 模拟报表数据
 const revenueData = [
-  { venue: '万达广场', today: 3245, yesterday: 2980, week: 21580, month: 89650 },
-  { venue: '银泰城', today: 2890, yesterday: 3120, week: 19870, month: 78450 },
-  { venue: '龙湖天街', today: 3156, yesterday: 2850, week: 20650, month: 82340 },
-  { venue: '印象城', today: 2234, yesterday: 2680, week: 17890, month: 65780 }
+  { 
+    venue: '万达广场', 
+    today: 3245, 
+    yesterday: 2980, 
+    week: 21580, 
+    month: 89650,
+    gamePointsToday: 1250,
+    gamePointsYesterday: 1180,
+    gamePointsWeek: 8650,
+    gamePointsMonth: 35200
+  },
+  { 
+    venue: '银泰城', 
+    today: 2890, 
+    yesterday: 3120, 
+    week: 19870, 
+    month: 78450,
+    gamePointsToday: 980,
+    gamePointsYesterday: 1050,
+    gamePointsWeek: 7230,
+    gamePointsMonth: 29800
+  },
+  { 
+    venue: '龙湖天街', 
+    today: 3156, 
+    yesterday: 2850, 
+    week: 20650, 
+    month: 82340,
+    gamePointsToday: 1320,
+    gamePointsYesterday: 1200,
+    gamePointsWeek: 8950,
+    gamePointsMonth: 36400
+  },
+  { 
+    venue: '印象城', 
+    today: 2234, 
+    yesterday: 2680, 
+    week: 17890, 
+    month: 65780,
+    gamePointsToday: 890,
+    gamePointsYesterday: 920,
+    gamePointsWeek: 6450,
+    gamePointsMonth: 26700
+  }
 ];
 
 const deviceStats = [
@@ -213,7 +253,7 @@ export default function ReportsPage() {
         {selectedReportType === 'revenue' && (
           <div className="space-y-6">
             {/* 收益概览 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">¥125,520</p>
                 <p className="text-sm text-gray-600 mt-1">总收益</p>
@@ -229,6 +269,10 @@ export default function ReportsPage() {
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <p className="text-2xl font-bold text-purple-600">¥795</p>
                 <p className="text-sm text-gray-600 mt-1">设备均值</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <p className="text-2xl font-bold text-orange-600">128,100</p>
+                <p className="text-sm text-gray-600 mt-1">游戏退分</p>
               </div>
             </div>
 
@@ -253,6 +297,9 @@ export default function ReportsPage() {
                       本月
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      游戏退分
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       增长率
                     </th>
                   </tr>
@@ -272,6 +319,9 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ¥{venue.month.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {venue.gamePointsMonth.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`${venue.today > venue.yesterday ? 'text-green-600' : 'text-red-600'}`}>
