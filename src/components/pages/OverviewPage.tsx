@@ -62,20 +62,26 @@ export default function OverviewPage() {
         dashboardApi.getAlerts()
       ]);
 
-      if (statsRes.success) {
-        setStats(statsRes.data);
+      if (statsRes.success && statsRes.data) {
+        setStats(statsRes.data as DashboardStats);
       } else {
         throw new Error(statsRes.err_message || '获取统计数据失败');
       }
 
-      if (distributionRes.success && distributionRes.data?.places) {
-        setPlaceDistribution(distributionRes.data.places);
+      if (distributionRes.success && distributionRes.data) {
+        const data = distributionRes.data as { places: PlaceDistribution[] };
+        if (data.places) {
+          setPlaceDistribution(data.places);
+        }
       } else {
         throw new Error(distributionRes.err_message || '获取场地分布数据失败');
       }
 
-      if (alertsRes.success && alertsRes.data?.alerts) {
-        setAlerts(alertsRes.data.alerts);
+      if (alertsRes.success && alertsRes.data) {
+        const data = alertsRes.data as { alerts: DashboardAlert[] };
+        if (data.alerts) {
+          setAlerts(data.alerts);
+        }
       } else {
         throw new Error(alertsRes.err_message || '获取告警数据失败');
       }
