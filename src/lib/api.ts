@@ -17,6 +17,28 @@ const getApiBaseUrl = (): string => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// 提取根域名的辅助函数
+const getRootDomain = (hostname: string): string => {
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts.slice(-2).join('.');
+  }
+  return hostname;
+};
+
+// 动态获取登录地址
+export const getLoginUrl = (): string => {
+  // 在浏览器环境中动态获取
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    const rootDomain = getRootDomain(hostname);
+    return `${protocol}//op.${rootDomain}/login/`;
+  }
+  
+  // 服务端渲染时返回空字符串
+  return '';
+};
+
 interface ApiResponse<T = unknown> {
   success: boolean;
   err_code: string;
@@ -45,7 +67,17 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    const result: ApiResponse<T> = await response.json();
+    
+    // 检查401错误并重定向到登录页
+    if (result.err_code === "401") {
+      const loginUrl = getLoginUrl();
+      if (loginUrl && typeof window !== 'undefined') {
+        window.location.href = loginUrl;
+      }
+    }
+
+    return result;
   } catch (error) {
     console.error('API request error:', error);
     throw error;
