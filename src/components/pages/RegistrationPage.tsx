@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -10,8 +10,7 @@ import {
   CogIcon,
   PlusIcon,
   TrashIcon,
-  MagnifyingGlassIcon,
-  ArrowDownTrayIcon
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import {
   Dialog,
@@ -25,356 +24,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { deviceRegisterApi } from '@/lib/api';
+import type {
+  Place,
+  Group,
+  DeviceRegisterBatch,
+  DeviceRegisterLog,
+  RegistrationStats,
+  AdvancedSettings
+} from '@/types/device-register';
 
-const venues = [
-  { id: 1, name: '万达广场', groups: ['A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机'] },
-  { id: 2, name: '银泰城', groups: ['A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机'] },
-  { id: 3, name: '龙湖天街', groups: ['A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机'] },
-  { id: 4, name: '印象城', groups: ['A区娃娃机', 'B区推币机', 'C区夹娃娃', 'D区弹珠机'] }
-];
-
-const registrationLogs = [
-  {
-    id: 1,
-    deviceId: 'DEV-2024-001',
-    venue: '万达广场',
-    group: 'A区娃娃机',
-    status: 'success',
-    time: '14:23:45',
-    message: '设备注册成功'
-  },
-  {
-    id: 2,
-    deviceId: 'DEV-2024-002',
-    venue: '万达广场',
-    group: 'A区娃娃机',
-    status: 'success',
-    time: '14:23:12',
-    message: '设备注册成功'
-  },
-  {
-    id: 3,
-    deviceId: 'DEV-2024-003',
-    venue: '银泰城',
-    group: 'B区推币机',
-    status: 'pending',
-    time: '14:22:58',
-    message: '等待设备响应'
-  },
-  {
-    id: 4,
-    deviceId: 'DEV-2024-004',
-    venue: '龙湖天街',
-    group: 'C区夹娃娃',
-    status: 'failed',
-    time: '14:22:34',
-    message: '连接超时'
-  },
-  {
-    id: 5,
-    deviceId: 'DEV-2024-005',
-    venue: '印象城',
-    group: 'D区弹珠机',
-    status: 'success',
-    time: '14:22:18',
-    message: '设备注册成功'
-  }
-];
-
-// 模拟 device_register 表数据 (设备注册批次)
-const deviceRegisterBatches = [
-  {
-    id: 1,
-    place_id: 1,
-    group_id: 1,
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    total: 10,
-    count: 8, // 已注册成功数
-    start_time: '2024-03-20 14:20:00',
-    end_time: '2024-03-20 14:25:00',
-    point_coin: 10, // 积分每币
-    tail_play: 1, // 尾数可玩
-    coin_count: 3, // 投币档位数
-    coin_levels: [1, 5, 10], // 档位数组
-    status: 2, // 2:已结束
-    created_at: '2024-03-20 14:20:00'
-  },
-  {
-    id: 2,
-    place_id: 2,
-    group_id: 2,
-    place_name: '银泰城',
-    group_name: 'B区推币机',
-    total: 15,
-    count: 12,
-    start_time: '2024-03-20 13:30:00',
-    end_time: '2024-03-20 13:40:00',
-    point_coin: 20,
-    tail_play: 0, // 尾数不可玩
-    coin_count: 4,
-    coin_levels: [1, 2, 5, 10],
-    status: 2, // 2:已结束
-    created_at: '2024-03-20 13:30:00'
-  },
-  {
-    id: 3,
-    place_id: 3,
-    group_id: 3,
-    place_name: '龙湖天街',
-    group_name: 'C区夹娃娃',
-    total: 8,
-    count: 5,
-    start_time: '2024-03-20 15:00:00',
-    end_time: null, // 进行中
-    point_coin: 15,
-    tail_play: 1,
-    coin_count: 2,
-    coin_levels: [2, 8],
-    status: 1, // 1:进行中
-    created_at: '2024-03-20 15:00:00'
-  },
-  {
-    id: 4,
-    place_id: 4,
-    group_id: 4,
-    place_name: '印象城',
-    group_name: 'D区弹珠机',
-    total: 20,
-    count: 20,
-    start_time: '2024-03-20 10:00:00',
-    end_time: '2024-03-20 10:15:00',
-    point_coin: 25,
-    tail_play: 0,
-    coin_count: 5,
-    coin_levels: [1, 3, 5, 10, 20],
-    status: 2, // 2:已结束
-    created_at: '2024-03-20 10:00:00'
-  }
-];
-
-// 模拟 device_register_log 表数据 (具体设备注册记录)
-const deviceRegisterLogs = [
-  // 万达广场 A区娃娃机批次的设备
-  {
-    id: 1,
-    device_register_id: 1,
-    device_no: 'DEV-2024-001',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:15'
-  },
-  {
-    id: 2,
-    device_register_id: 1,
-    device_no: 'DEV-2024-002',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:20'
-  },
-  {
-    id: 3,
-    device_register_id: 1,
-    device_no: 'DEV-2024-003',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 2,
-    created_at: '2024-03-20 14:21:25'
-  },
-  {
-    id: 4,
-    device_register_id: 1,
-    device_no: 'DEV-2024-004',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:30'
-  },
-  {
-    id: 5,
-    device_register_id: 1,
-    device_no: 'DEV-2024-005',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:35'
-  },
-  {
-    id: 6,
-    device_register_id: 1,
-    device_no: 'DEV-2024-006',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:40'
-  },
-  {
-    id: 7,
-    device_register_id: 1,
-    device_no: 'DEV-2024-007',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:45'
-  },
-  {
-    id: 8,
-    device_register_id: 1,
-    device_no: 'DEV-2024-008',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 14:21:50'
-  },
-  {
-    id: 9,
-    device_register_id: 1,
-    device_no: 'DEV-2024-009',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 2,
-    created_at: '2024-03-20 14:21:55'
-  },
-  {
-    id: 10,
-    device_register_id: 1,
-    device_no: 'DEV-2024-010',
-    place_name: '万达广场',
-    group_name: 'A区娃娃机',
-    device_type_name: '夹娃娃机',
-    result: 2,
-    created_at: '2024-03-20 14:22:00'
-  },
-
-  // 银泰城 B区推币机批次的设备
-  {
-    id: 11,
-    device_register_id: 2,
-    device_no: 'DEV-2024-011',
-    place_name: '银泰城',
-    group_name: 'B区推币机',
-    device_type_name: '推币机',
-    result: 1,
-    created_at: '2024-03-20 13:31:00'
-  },
-  {
-    id: 12,
-    device_register_id: 2,
-    device_no: 'DEV-2024-012',
-    place_name: '银泰城',
-    group_name: 'B区推币机',
-    device_type_name: '推币机',
-    result: 1,
-    created_at: '2024-03-20 13:31:05'
-  },
-  {
-    id: 13,
-    device_register_id: 2,
-    device_no: 'DEV-2024-013',
-    place_name: '银泰城',
-    group_name: 'B区推币机',
-    device_type_name: '推币机',
-    result: 2,
-    created_at: '2024-03-20 13:31:10'
-  },
-
-  // 龙湖天街 C区夹娃娃批次的设备 (进行中)
-  {
-    id: 14,
-    device_register_id: 3,
-    device_no: 'DEV-2024-014',
-    place_name: '龙湖天街',
-    group_name: 'C区夹娃娃',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 15:01:00'
-  },
-  {
-    id: 15,
-    device_register_id: 3,
-    device_no: 'DEV-2024-015',
-    place_name: '龙湖天街',
-    group_name: 'C区夹娃娃',
-    device_type_name: '夹娃娃机',
-    result: 1,
-    created_at: '2024-03-20 15:01:05'
-  },
-  {
-    id: 16,
-    device_register_id: 3,
-    device_no: 'DEV-2024-016',
-    place_name: '龙湖天街',
-    group_name: 'C区夹娃娃',
-    device_type_name: '夹娃娃机',
-    result: 0,
-    created_at: '2024-03-20 15:01:10'
-  }
-];
-
-function getStatusIcon(status: string) {
-  switch (status) {
-    case 'success':
-      return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
-    case 'pending':
-      return <ClockIcon className="w-5 h-5 text-yellow-500" />;
-    case 'failed':
-      return <ExclamationCircleIcon className="w-5 h-5 text-red-500" />;
-    default:
-      return null;
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'success':
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          成功
-        </span>
-      );
-    case 'pending':
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          等待中
-        </span>
-      );
-    case 'failed':
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          失败
-        </span>
-      );
-    default:
-      return null;
-  }
-}
-
-function getLogLevelColor(level: string) {
-  switch (level) {
-    case 'info':
-      return 'text-gray-600';
-    case 'success':
-      return 'text-green-600';
-    case 'warning':
-      return 'text-yellow-600';
-    case 'error':
-      return 'text-red-600';
-    default:
-      return 'text-gray-600';
-  }
-}
-
+// 状态图标组件
 function getRegisterResultIcon(result: number) {
   switch (result) {
     case 1: // 成功
@@ -445,41 +105,205 @@ function getBatchStatusBadge(status: number) {
 }
 
 export default function RegistrationPage() {
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [selectedVenue, setSelectedVenue] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('');
-  const [registrationMode, setRegistrationMode] = useState('auto');
-  const [timeLimit, setTimeLimit] = useState('60');
+  // 基础状态
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // API数据状态
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [currentBatch, setCurrentBatch] = useState<DeviceRegisterBatch | null>(null);
+  const [recentLogs, setRecentLogs] = useState<DeviceRegisterLog[]>([]);
+  const [batches, setBatches] = useState<DeviceRegisterBatch[]>([]);
+  const [selectedBatchLogs, setSelectedBatchLogs] = useState<DeviceRegisterLog[]>([]);
+  
+  // 表单状态
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [maxDevices, setMaxDevices] = useState('50');
-
+  const [timeLimit, setTimeLimit] = useState('60');
+  
   // 对话框状态
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showRegistrationLogs, setShowRegistrationLogs] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-
+  
   // 高级设置状态
-  const [advancedSettings, setAdvancedSettings] = useState({
+  const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
     point_coin: 0,
     tail_play: false,
     coin_count: 0,
-    coin_levels: [] as number[]
+    coin_levels: []
   });
 
-  // 从批次加载设置
-  const loadSettingsFromBatch = (batchId: number) => {
-    const batch = deviceRegisterBatches.find((b) => b.id === batchId);
-    if (batch) {
-      setAdvancedSettings({
-        point_coin: batch.point_coin,
-        tail_play: batch.tail_play === 1,
-        coin_count: batch.coin_count,
-        coin_levels: [...batch.coin_levels]
+  // 计算统计数据
+  const stats: RegistrationStats = {
+    waiting: recentLogs.filter(log => log.result === 0).length,
+    success: recentLogs.filter(log => log.result === 1).length,
+    failed: recentLogs.filter(log => log.result === 2).length
+  };
+
+  // 获取场地列表
+  const fetchPlaces = useCallback(async () => {
+    try {
+      const response = await deviceRegisterApi.getPlaces();
+      if (response.success && response.data) {
+        setPlaces(response.data as Place[]);
+      } else {
+        setError(response.err_message || '获取场地列表失败');
+      }
+    } catch (err) {
+      setError('获取场地列表失败');
+      console.error('Error fetching places:', err);
+    }
+  }, []);
+
+  // 获取分组列表
+  const fetchGroups = useCallback(async (placeId: number) => {
+    try {
+      const response = await deviceRegisterApi.getGroups(placeId);
+      if (response.success && response.data) {
+        setGroups(response.data as Group[]);
+      } else {
+        setError(response.err_message || '获取分组列表失败');
+      }
+    } catch (err) {
+      setError('获取分组列表失败');
+      console.error('Error fetching groups:', err);
+    }
+  }, []);
+
+  // 获取当前注册状态
+  const fetchCurrentBatch = useCallback(async () => {
+    try {
+      const response = await deviceRegisterApi.getCurrent();
+      if (response.success) {
+        setCurrentBatch((response.data as DeviceRegisterBatch) || null);
+      } else {
+        setError(response.err_message || '获取注册状态失败');
+      }
+    } catch (err) {
+      console.error('Error fetching current batch:', err);
+    }
+  }, []);
+
+  // 获取最近日志
+  const fetchRecentLogs = useCallback(async () => {
+    try {
+      const response = await deviceRegisterApi.getRecentLogs();
+      if (response.success && response.data) {
+        setRecentLogs(response.data as DeviceRegisterLog[]);
+      } else {
+        setError(response.err_message || '获取日志失败');
+      }
+    } catch (err) {
+      console.error('Error fetching recent logs:', err);
+    }
+  }, []);
+
+  // 获取注册批次列表
+  const fetchBatches = useCallback(async (searchQuery?: string) => {
+    try {
+      const response = await deviceRegisterApi.getBatches({
+        search: searchQuery,
+        page: 1,
+        page_size: 20
       });
+      if (response.success && response.data) {
+        setBatches(response.data as DeviceRegisterBatch[]);
+      } else {
+        setError(response.err_message || '获取批次列表失败');
+      }
+    } catch (err) {
+      console.error('Error fetching batches:', err);
+    }
+  }, []);
+
+  // 获取批次日志
+  const fetchBatchLogs = useCallback(async (batchId: number) => {
+    try {
+      const response = await deviceRegisterApi.getBatchLogs(batchId);
+      if (response.success && response.data) {
+        setSelectedBatchLogs(response.data as DeviceRegisterLog[]);
+      } else {
+        setError(response.err_message || '获取批次日志失败');
+      }
+    } catch (err) {
+      console.error('Error fetching batch logs:', err);
+    }
+  }, []);
+
+  // 开始注册
+  const handleStartRegistration = async () => {
+    if (!selectedPlace || !selectedGroup) {
+      setError('请先选择场地和分组');
+      return;
+    }
+
+    try {
+      const data = {
+        place_id: selectedPlace.id,
+        group_id: selectedGroup.id,
+        total: parseInt(maxDevices),
+        ...advancedSettings,
+        tail_play: advancedSettings.tail_play ? 1 : 0
+      };
+
+      const response = await deviceRegisterApi.start(data);
+      if (response.success) {
+        await fetchCurrentBatch();
+        await fetchRecentLogs();
+        setError(null);
+      } else {
+        setError(response.err_message || '开始注册失败');
+      }
+    } catch (err) {
+      setError('开始注册失败');
+      console.error('Error starting registration:', err);
     }
   };
 
-  // 重置高级设置
+  // 停止注册
+  const handleStopRegistration = async () => {
+    try {
+      const response = await deviceRegisterApi.stop();
+      if (response.success) {
+        await fetchCurrentBatch();
+        await fetchRecentLogs();
+        setError(null);
+      } else {
+        setError(response.err_message || '停止注册失败');
+      }
+    } catch (err) {
+      setError('停止注册失败');
+      console.error('Error stopping registration:', err);
+    }
+  };
+
+  // 场地选择处理
+  const handlePlaceSelect = async (place: Place) => {
+    setSelectedPlace(place);
+    setSelectedGroup(null);
+    setGroups([]);
+    await fetchGroups(place.id);
+  };
+
+  // 分组选择处理
+  const handleGroupSelect = (group: Group) => {
+    setSelectedGroup(group);
+  };
+
+  // 高级设置管理
+  const loadSettingsFromBatch = (batch: DeviceRegisterBatch) => {
+    setAdvancedSettings({
+      point_coin: batch.point_coin,
+      tail_play: batch.tail_play === 1,
+      coin_count: batch.coin_count,
+      coin_levels: [...batch.coin_levels]
+    });
+  };
+
   const resetAdvancedSettings = () => {
     setAdvancedSettings({
       point_coin: 0,
@@ -489,62 +313,102 @@ export default function RegistrationPage() {
     });
   };
 
-  const stats = {
-    waiting: 12,
-    success: 145,
-    failed: 3
-  };
-
-  const handleStartRegistration = () => {
-    if (!selectedVenue || !selectedGroup) {
-      alert('请先选择场地和分组');
-      return;
-    }
-    setIsRegistering(true);
-    // 模拟注册过程
-    setTimeout(() => {
-      setIsRegistering(false);
-    }, 5000);
-  };
-
-  const availableGroups = selectedVenue ? venues.find((v) => v.name === selectedVenue)?.groups || [] : [];
-
-  // 档位管理函数
   const addCoinLevel = () => {
-    setAdvancedSettings((prev) => ({
+    setAdvancedSettings(prev => ({
       ...prev,
       coin_levels: [...prev.coin_levels, 0]
     }));
   };
 
   const removeCoinLevel = (index: number) => {
-    setAdvancedSettings((prev) => ({
+    setAdvancedSettings(prev => ({
       ...prev,
       coin_levels: prev.coin_levels.filter((_, i) => i !== index)
     }));
   };
 
   const updateCoinLevel = (index: number, value: number) => {
-    setAdvancedSettings((prev) => ({
+    setAdvancedSettings(prev => ({
       ...prev,
       coin_levels: prev.coin_levels.map((level, i) => (i === index ? value : level))
     }));
   };
 
-  // 过滤注册批次
-  const filteredBatches = deviceRegisterBatches.filter(
-    (batch) =>
-      batch.place_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      batch.group_name.toLowerCase().includes(searchQuery.toLowerCase())
+  // 初始数据加载
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchPlaces(),
+        fetchCurrentBatch(),
+        fetchRecentLogs(),
+        fetchBatches()
+      ]);
+      setLoading(false);
+    };
+
+    loadInitialData();
+  }, [fetchPlaces, fetchCurrentBatch, fetchRecentLogs, fetchBatches]);
+
+  // 定时刷新数据
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      // 如果有正在进行的注册，频繁刷新
+      if (currentBatch?.status === 1) {
+        await Promise.all([
+          fetchCurrentBatch(),
+          fetchRecentLogs()
+        ]);
+      }
+    }, 5000); // 每5秒刷新一次
+
+    return () => clearInterval(interval);
+  }, [currentBatch?.status, fetchCurrentBatch, fetchRecentLogs]);
+
+  // 批次选择处理
+  const handleBatchSelect = async (batchId: number) => {
+    setSelectedBatch(batchId);
+    await fetchBatchLogs(batchId);
+  };
+
+  // 搜索处理
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    await fetchBatches(query);
+  };
+
+  // 过滤批次
+  const filteredBatches = batches.filter(batch =>
+    batch.place_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    batch.group_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 获取选中批次的设备日志
-  const selectedBatchLogs = selectedBatch
-    ? deviceRegisterLogs.filter((log) => log.device_register_id === selectedBatch)
-    : [];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <ExclamationCircleIcon className="w-5 h-5 text-red-500 mr-2" />
+            <span className="text-red-700">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 页面标题 */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">设备注册</h1>
@@ -557,8 +421,13 @@ export default function RegistrationPage() {
           <h2 className="text-lg font-medium text-gray-900">注册状态</h2>
           <div className="flex items-center space-x-2">
             <div
-              className={`w-3 h-3 rounded-full ${isRegistering ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`}></div>
-            <span className="text-sm text-gray-600">{isRegistering ? '注册进行中' : '系统就绪'}</span>
+              className={`w-3 h-3 rounded-full ${
+                currentBatch?.status === 1 ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
+              }`}
+            />
+            <span className="text-sm text-gray-600">
+              {currentBatch?.status === 1 ? '注册进行中' : '系统就绪'}
+            </span>
           </div>
         </div>
 
@@ -597,20 +466,18 @@ export default function RegistrationPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">选择场地</label>
               <div className="grid grid-cols-2 gap-2">
-                {venues.map((venue) => (
+                {places.map((place) => (
                   <button
-                    key={venue.id}
-                    onClick={() => {
-                      setSelectedVenue(venue.name);
-                      setSelectedGroup('');
-                    }}
+                    key={place.id}
+                    onClick={() => handlePlaceSelect(place)}
                     className={`p-3 text-left border rounded-lg transition-colors ${
-                      selectedVenue === venue.name
+                      selectedPlace?.id === place.id
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 hover:border-gray-400'
-                    }`}>
-                    <div className="font-medium">{venue.name}</div>
-                    <div className="text-xs text-gray-500">{venue.groups.length} 个分组</div>
+                    }`}
+                  >
+                    <div className="font-medium">{place.name}</div>
+                    <div className="text-xs text-gray-500">{place.device_count} 个设备</div>
                   </button>
                 ))}
               </div>
@@ -620,48 +487,23 @@ export default function RegistrationPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">选择分组</label>
               <div className="grid grid-cols-2 gap-2">
-                {availableGroups.map((group) => (
+                {groups.map((group) => (
                   <button
-                    key={group}
-                    onClick={() => setSelectedGroup(group)}
+                    key={group.id}
+                    onClick={() => handleGroupSelect(group)}
                     className={`p-3 text-left border rounded-lg transition-colors ${
-                      selectedGroup === group
+                      selectedGroup?.id === group.id
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
-                    disabled={!selectedVenue}>
-                    <div className="font-medium">{group}</div>
+                    disabled={!selectedPlace}
+                  >
+                    <div className="font-medium">{group.name}</div>
+                    <div className="text-xs text-gray-500">{group.device_count} 个设备</div>
                   </button>
                 ))}
               </div>
-              {!selectedVenue && <p className="text-sm text-gray-500 mt-2">请先选择场地</p>}
-            </div>
-
-            {/* 注册设置 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">注册模式</label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="auto"
-                    checked={registrationMode === 'auto'}
-                    onChange={(e) => setRegistrationMode(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">自动注册</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    value="manual"
-                    checked={registrationMode === 'manual'}
-                    onChange={(e) => setRegistrationMode(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">手动确认</span>
-                </label>
-              </div>
+              {!selectedPlace && <p className="text-sm text-gray-500 mt-2">请先选择场地</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -688,10 +530,11 @@ export default function RegistrationPage() {
             {/* 控制按钮 */}
             <div className="flex space-x-3 pt-4">
               <button
-                onClick={handleStartRegistration}
-                disabled={isRegistering || !selectedVenue || !selectedGroup}
-                className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isRegistering ? (
+                onClick={currentBatch?.status === 1 ? handleStopRegistration : handleStartRegistration}
+                disabled={(!selectedPlace || !selectedGroup) && currentBatch?.status !== 1}
+                className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentBatch?.status === 1 ? (
                   <>
                     <PauseIcon className="w-4 h-4 mr-2" />
                     停止注册
@@ -705,7 +548,8 @@ export default function RegistrationPage() {
               </button>
               <button
                 onClick={() => setShowAdvancedSettings(true)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
                 <CogIcon className="w-4 h-4 mr-2" />
                 高级设置
               </button>
@@ -718,29 +562,36 @@ export default function RegistrationPage() {
           <h2 className="text-lg font-medium text-gray-900 mb-4">注册日志</h2>
 
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {registrationLogs.map((log) => (
-              <div key={log.id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg">
-                {getStatusIcon(log.status)}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900">{log.deviceId}</p>
-                    <span className="text-xs text-gray-500">{log.time}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {log.venue} - {log.group}
-                  </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-500">{log.message}</p>
-                    {getStatusBadge(log.status)}
+            {recentLogs.length > 0 ? (
+              recentLogs.map((log) => (
+                <div key={log.id} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg">
+                  {getRegisterResultIcon(log.result)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900">{log.device_no}</p>
+                      <span className="text-xs text-gray-500">
+                        {new Date(log.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {log.place_name} - {log.group_name}
+                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-gray-500">{log.result_msg}</p>
+                      {getRegisterResultBadge(log.result)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-8">暂无注册日志</div>
+            )}
           </div>
 
           <button
             onClick={() => setShowRegistrationLogs(true)}
-            className="w-full mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium">
+            className="w-full mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
             查看完整日志
           </button>
         </div>
@@ -759,13 +610,14 @@ export default function RegistrationPage() {
               <Label className="text-sm font-medium">快速加载设置</Label>
               <p className="text-xs text-gray-500 mb-2">从现有注册批次加载配置</p>
               <div className="flex gap-2 flex-wrap mb-2">
-                {deviceRegisterBatches.map((batch) => (
+                {batches.slice(0, 3).map((batch) => (
                   <Button
                     key={batch.id}
-                    onClick={() => loadSettingsFromBatch(batch.id)}
+                    onClick={() => loadSettingsFromBatch(batch)}
                     size="sm"
                     variant="outline"
-                    className="text-xs">
+                    className="text-xs"
+                  >
                     {batch.place_name} - {batch.group_name}
                   </Button>
                 ))}
@@ -774,7 +626,8 @@ export default function RegistrationPage() {
                 onClick={resetAdvancedSettings}
                 size="sm"
                 variant="ghost"
-                className="text-xs text-gray-500 hover:text-gray-700">
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
                 重置为默认值
               </Button>
             </div>
@@ -845,7 +698,8 @@ export default function RegistrationPage() {
                       onClick={() => removeCoinLevel(index)}
                       size="sm"
                       variant="ghost"
-                      className="text-red-600 hover:text-red-700">
+                      className="text-red-600 hover:text-red-700"
+                    >
                       <TrashIcon className="w-4 h-4" />
                     </Button>
                   </div>
@@ -863,10 +717,9 @@ export default function RegistrationPage() {
             </Button>
             <Button
               onClick={() => {
-                // 这里可以添加保存逻辑
-                console.log('保存高级设置:', advancedSettings);
                 setShowAdvancedSettings(false);
-              }}>
+              }}
+            >
               保存设置
             </Button>
           </DialogFooter>
@@ -892,7 +745,7 @@ export default function RegistrationPage() {
                       type="text"
                       placeholder="搜索场地或分组..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => handleSearch(e.target.value)}
                       className="pl-10"
                     />
                   </div>
@@ -902,12 +755,13 @@ export default function RegistrationPage() {
                   {filteredBatches.map((batch) => (
                     <div
                       key={batch.id}
-                      onClick={() => setSelectedBatch(batch.id)}
+                      onClick={() => handleBatchSelect(batch.id)}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedBatch === batch.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}>
+                      }`}
+                    >
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <p className="font-medium text-sm">{batch.place_name}</p>
@@ -926,18 +780,13 @@ export default function RegistrationPage() {
                         <div className="w-full bg-gray-200 rounded-full h-1.5 my-1">
                           <div
                             className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
-                            style={{ width: `${(batch.count / batch.total) * 100}%` }}></div>
+                            style={{ width: `${(batch.count / batch.total) * 100}%` }}
+                          />
                         </div>
                         <div className="flex justify-between">
                           <span>开始:</span>
-                          <span>{batch.start_time.split(' ')[1]}</span>
+                          <span>{new Date(batch.created_at).toLocaleTimeString()}</span>
                         </div>
-                        {/* {batch.end_time && (
-                          <div className="flex justify-between">
-                            <span>结束:</span>
-                            <span>{batch.end_time.split(' ')[1]}</span>
-                          </div>
-                        )} */}
                         <div className="flex justify-between text-blue-600">
                           <span>积分/币:</span>
                           <span className="font-medium">{batch.point_coin}</span>
@@ -953,25 +802,12 @@ export default function RegistrationPage() {
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium">设备注册记录</h3>
-                {selectedBatch && (
-                  <Button
-                    onClick={() => {
-                      // 导出功能，这里可以实现CSV导出等
-                      console.log('导出批次日志:', selectedBatch);
-                    }}
-                    size="sm"
-                    variant="outline"
-                    className="text-xs">
-                    <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-                    导出记录
-                  </Button>
-                )}
               </div>
               {selectedBatch ? (
                 <div className="space-y-4">
                   {/* 批次信息摘要 */}
                   {(() => {
-                    const batch = deviceRegisterBatches.find((b) => b.id === selectedBatch);
+                    const batch = batches.find((b) => b.id === selectedBatch);
                     if (!batch) return null;
 
                     return (
@@ -996,7 +832,7 @@ export default function RegistrationPage() {
                           </div>
                           <div>
                             <span className="text-gray-600">开始时间:</span>
-                            <p className="font-medium">{batch.start_time}</p>
+                            <p className="font-medium">{batch.created_at}</p>
                           </div>
                           <div>
                             <span className="text-gray-600">结束时间:</span>
