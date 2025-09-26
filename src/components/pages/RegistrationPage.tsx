@@ -131,10 +131,10 @@ export default function RegistrationPage() {
   
   // 高级设置状态
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
-    point_coin: 0,
+    point_coin: 10,
     tail_play: false,
-    coin_count: 0,
-    coin_levels: []
+    coin_count: 6,
+    coin_levels: [1, 5, 10, 20, 50, 100]
   });
 
   // 计算统计数据
@@ -306,10 +306,10 @@ export default function RegistrationPage() {
 
   const resetAdvancedSettings = () => {
     setAdvancedSettings({
-      point_coin: 0,
+      point_coin: 10,
       tail_play: false,
-      coin_count: 0,
-      coin_levels: []
+      coin_count: 6,
+      coin_levels: [1, 5, 10, 20, 50, 100]
     });
   };
 
