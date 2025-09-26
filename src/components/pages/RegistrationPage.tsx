@@ -694,27 +694,31 @@ export default function RegistrationPage() {
                 {/* 档位设置 */}
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="text-right mt-2">档位设置</Label>
-                  <div className="col-span-3 space-y-2">
-                    {advancedSettings.coin_levels.map((level, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={level}
-                          onChange={(e) => updateCoinLevel(index, parseInt(e.target.value) || 0)}
-                          placeholder={`档位 ${index + 1}`}
-                          className="flex-1"
-                        />
-                        <Button
-                          onClick={() => removeCoinLevel(index)}
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
+                  <div className="col-span-3">
+                    <div className="max-h-[220px] overflow-y-auto p-1">
+                      <div className="grid grid-cols-2 gap-3 mb-2">
+                        {advancedSettings.coin_levels.map((level, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={level}
+                              onChange={(e) => updateCoinLevel(index, parseInt(e.target.value) || 0)}
+                              placeholder={`档位 ${index + 1}`}
+                              className="flex-1 h-8 text-sm"
+                            />
+                            <Button
+                              onClick={() => removeCoinLevel(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
+                            >
+                              <TrashIcon className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <Button onClick={addCoinLevel} size="sm" variant="outline" className="w-full">
+                    </div>
+                    <Button onClick={addCoinLevel} size="sm" variant="outline" className="w-full mt-2">
                       <PlusIcon className="w-4 h-4 mr-2" />
                       添加档位
                     </Button>
