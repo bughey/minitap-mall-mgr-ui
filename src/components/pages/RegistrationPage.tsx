@@ -695,10 +695,10 @@ export default function RegistrationPage() {
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="text-right mt-2">档位设置</Label>
                   <div className="col-span-3">
-                    <div className="max-h-[200px] overflow-y-auto">
-                      <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="max-h-[220px] overflow-y-auto p-1">
+                      <div className="grid grid-cols-2 gap-3 mb-2">
                         {advancedSettings.coin_levels.map((level, index) => (
-                          <div key={index} className="flex items-center gap-1">
+                          <div key={index} className="flex items-center gap-2">
                             <Input
                               type="number"
                               value={level}
