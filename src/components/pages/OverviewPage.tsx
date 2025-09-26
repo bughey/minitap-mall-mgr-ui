@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Computer, DollarSign, AlertTriangle, Play, Plus, Search, Download, Coins, TrendingDown, ArrowLeft, ListOrdered } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -244,9 +245,11 @@ export default function OverviewPage() {
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">场地设备分布</CardTitle>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-              <span className="text-sm">查看详情</span>
-            </Button>
+            <Link href="/venues">
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                <span className="text-sm">查看详情</span>
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
@@ -365,18 +368,24 @@ export default function OverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <Plus className="w-5 h-5 mb-2" />
-                  <span className="text-sm">添加设备</span>
-                </Button>
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <Search className="w-5 h-5 mb-2" />
-                  <span className="text-sm">设备搜索</span>
-                </Button>
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <Download className="w-5 h-5 mb-2" />
-                  <span className="text-sm">导出报表</span>
-                </Button>
+                <Link href="/registration">
+                  <Button variant="outline" className="flex flex-col items-center p-4 h-auto w-full">
+                    <Plus className="w-5 h-5 mb-2" />
+                    <span className="text-sm">添加设备</span>
+                  </Button>
+                </Link>
+                <Link href="/devices">
+                  <Button variant="outline" className="flex flex-col items-center p-4 h-auto w-full">
+                    <Search className="w-5 h-5 mb-2" />
+                    <span className="text-sm">设备搜索</span>
+                  </Button>
+                </Link>
+                <Link href="/reports">
+                  <Button variant="outline" className="flex flex-col items-center p-4 h-auto w-full">
+                    <Download className="w-5 h-5 mb-2" />
+                    <span className="text-sm">导出报表</span>
+                  </Button>
+                </Link>
                 {/* <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
                   <Settings className="w-5 h-5 mb-2" />
                   <span className="text-sm">系统设置</span>

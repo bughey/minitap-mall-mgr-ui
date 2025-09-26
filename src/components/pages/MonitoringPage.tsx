@@ -95,9 +95,11 @@ export default function MonitoringPage() {
 
       // 处理告警数据响应
       if (alertsResponse.success && alertsResponse.data) {
-        setAlerts(alertsResponse.data as MonitoringAlert[]);
+        const alertsData = alertsResponse.data as MonitoringAlert[];
+        setAlerts(Array.isArray(alertsData) ? alertsData : []);
       } else {
         console.error('获取告警数据失败:', alertsResponse.err_message);
+        setAlerts([]); // 确保失败时也设置为空数组
         setError(alertsResponse.err_message || '获取告警数据失败');
       }
 
@@ -110,6 +112,10 @@ export default function MonitoringPage() {
     } catch (error) {
       console.error('获取监控数据失败:', error);
       setError('网络错误，无法获取监控数据');
+      // 确保异常时也设置默认值
+      setAlerts([]);
+      setVenues([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -364,13 +370,13 @@ export default function MonitoringPage() {
             <h2 className="text-lg font-medium text-gray-900">实时警报</h2>
             <div className="flex items-center text-sm text-gray-500">
               <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
-              {alerts.filter((alert) => alert.type === 'error').length} 错误,{' '}
-              {alerts.filter((alert) => alert.type === 'warning').length} 警告
+              {Array.isArray(alerts) ? alerts.filter((alert) => alert.type === 'error').length : 0} 错误,{' '}
+              {Array.isArray(alerts) ? alerts.filter((alert) => alert.type === 'warning').length : 0} 警告
             </div>
           </div>
 
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {alerts.length > 0 ? (
+            {Array.isArray(alerts) && alerts.length > 0 ? (
               alerts.map((alert) => (
                 <div key={alert.id} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
                   {getAlertIcon(alert.type)}

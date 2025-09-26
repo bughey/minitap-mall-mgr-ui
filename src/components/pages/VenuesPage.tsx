@@ -16,13 +16,13 @@ import {
   PlaceSummary, 
   PlaceListResponse, 
   Group,
-  UIStatus, 
   getUIStatus, 
   getStatusText, 
   getStatusColor 
 } from '@/types/venue';
 import PlaceFormDialog from '@/components/venue/PlaceFormDialog';
 import GroupFormDialog from '@/components/venue/GroupFormDialog';
+import PlaceDetailDialog from '@/components/venue/PlaceDetailDialog';
 
 export default function VenuesPage() {
   const [places, setPlaces] = useState<Place[]>([]);
@@ -41,6 +41,10 @@ export default function VenuesPage() {
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | undefined>(undefined);
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
+  
+  // 场地详情对话框状态
+  const [showPlaceDetail, setShowPlaceDetail] = useState(false);
+  const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<Place | null>(null);
   
   // 确认删除对话框状态
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -385,7 +389,14 @@ export default function VenuesPage() {
                 {/* 操作按钮 */}
                 <div className="flex justify-between flex-row-reverse mt-6 pt-4 border-t">
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlaceForDetail(place);
+                        setShowPlaceDetail(true);
+                      }}
+                    >
                       <Eye className="w-3 h-3 mr-1" />
                       查看详情
                     </Button>
@@ -498,6 +509,19 @@ export default function VenuesPage() {
           }}
         />
       )}
+
+      {/* 场地详情对话框 */}
+      <PlaceDetailDialog
+        open={showPlaceDetail}
+        onOpenChange={(open) => {
+          setShowPlaceDetail(open);
+          if (!open) {
+            setSelectedPlaceForDetail(null);
+          }
+        }}
+        placeId={selectedPlaceForDetail?.id}
+        place={selectedPlaceForDetail}
+      />
 
       {/* 确认删除对话框 */}
       <ConfirmDialog
