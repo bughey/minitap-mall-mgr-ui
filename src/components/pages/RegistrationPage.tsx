@@ -134,7 +134,8 @@ export default function RegistrationPage() {
     point_coin: 10,
     tail_play: false,
     coin_count: 6,
-    coin_levels: [1, 5, 10, 20, 50, 100]
+    coin_levels: [1, 5, 10, 20, 50, 100],
+    box_count: undefined
   });
 
   // 计算统计数据
@@ -247,7 +248,8 @@ export default function RegistrationPage() {
         group_id: selectedGroup.id,
         total: parseInt(maxDevices),
         ...advancedSettings,
-        tail_play: advancedSettings.tail_play ? 1 : 0
+        tail_play: advancedSettings.tail_play ? 1 : 0,
+        ...(advancedSettings.box_count !== undefined && { box_count: advancedSettings.box_count })
       };
 
       const response = await deviceRegisterApi.start(data);
@@ -300,7 +302,8 @@ export default function RegistrationPage() {
       point_coin: batch.point_coin,
       tail_play: batch.tail_play === 1,
       coin_count: batch.coin_count,
-      coin_levels: [...batch.coin_levels]
+      coin_levels: [...batch.coin_levels],
+      box_count: batch.box_count
     });
   };
 
@@ -309,7 +312,8 @@ export default function RegistrationPage() {
       point_coin: 10,
       tail_play: false,
       coin_count: 6,
-      coin_levels: [1, 5, 10, 20, 50, 100]
+      coin_levels: [1, 5, 10, 20, 50, 100],
+      box_count: undefined
     });
   };
 
@@ -632,82 +636,118 @@ export default function RegistrationPage() {
               </Button>
             </div>
 
-            {/* 积分每币 */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="point_coin" className="text-right">
-                积分每币
-              </Label>
-              <Input
-                id="point_coin"
-                type="number"
-                value={advancedSettings.point_coin}
-                onChange={(e) =>
-                  setAdvancedSettings((prev) => ({ ...prev, point_coin: parseInt(e.target.value) || 0 }))
-                }
-                className="col-span-3"
-              />
-            </div>
+            {/* 游戏参数设置 */}
+            <div className="border-b pb-4">
+              <Label className="text-sm font-medium">游戏参数设置</Label>
+              <p className="text-xs text-gray-500 mb-4">配置游戏相关参数</p>
 
-            {/* 尾数是否可玩 */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="tail_play" className="text-right">
-                尾数可玩
-              </Label>
-              <div className="col-span-3 flex items-center">
-                <Switch
-                  id="tail_play"
-                  checked={advancedSettings.tail_play}
-                  onCheckedChange={(checked) => setAdvancedSettings((prev) => ({ ...prev, tail_play: checked }))}
-                />
-                <Label htmlFor="tail_play" className="ml-2 text-sm text-gray-500">
-                  {advancedSettings.tail_play ? '是' : '否'}
-                </Label>
+              <div className="space-y-4">
+                {/* 积分每币 */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="point_coin" className="text-right">
+                    积分每币
+                  </Label>
+                  <Input
+                    id="point_coin"
+                    type="number"
+                    value={advancedSettings.point_coin}
+                    onChange={(e) =>
+                      setAdvancedSettings((prev) => ({ ...prev, point_coin: parseInt(e.target.value) || 0 }))
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+
+                {/* 尾数是否可玩 */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="tail_play" className="text-right">
+                    尾数可玩
+                  </Label>
+                  <div className="col-span-3 flex items-center">
+                    <Switch
+                      id="tail_play"
+                      checked={advancedSettings.tail_play}
+                      onCheckedChange={(checked) => setAdvancedSettings((prev) => ({ ...prev, tail_play: checked }))}
+                    />
+                    <Label htmlFor="tail_play" className="ml-2 text-sm text-gray-500">
+                      {advancedSettings.tail_play ? '是' : '否'}
+                    </Label>
+                  </div>
+                </div>
+
+                {/* 投币档位数 */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="coin_count" className="text-right">
+                    投币档位数
+                  </Label>
+                  <Input
+                    id="coin_count"
+                    type="number"
+                    value={advancedSettings.coin_count}
+                    onChange={(e) =>
+                      setAdvancedSettings((prev) => ({ ...prev, coin_count: parseInt(e.target.value) || 0 }))
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+
+                {/* 档位设置 */}
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label className="text-right mt-2">档位设置</Label>
+                  <div className="col-span-3 space-y-2">
+                    {advancedSettings.coin_levels.map((level, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={level}
+                          onChange={(e) => updateCoinLevel(index, parseInt(e.target.value) || 0)}
+                          placeholder={`档位 ${index + 1}`}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => removeCoinLevel(index)}
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button onClick={addCoinLevel} size="sm" variant="outline" className="w-full">
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      添加档位
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 投币档位数 */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="coin_count" className="text-right">
-                投币档位数
-              </Label>
-              <Input
-                id="coin_count"
-                type="number"
-                value={advancedSettings.coin_count}
-                onChange={(e) =>
-                  setAdvancedSettings((prev) => ({ ...prev, coin_count: parseInt(e.target.value) || 0 }))
-                }
-                className="col-span-3"
-              />
-            </div>
+            {/* 礼品柜设置 */}
+            <div>
+              <Label className="text-sm font-medium">礼品柜设置</Label>
+              <p className="text-xs text-gray-500 mb-4">配置礼品柜相关参数</p>
 
-            {/* 档位设置 */}
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">档位设置</Label>
-              <div className="col-span-3 space-y-2">
-                {advancedSettings.coin_levels.map((level, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      value={level}
-                      onChange={(e) => updateCoinLevel(index, parseInt(e.target.value) || 0)}
-                      placeholder={`档位 ${index + 1}`}
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={() => removeCoinLevel(index)}
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button onClick={addCoinLevel} size="sm" variant="outline" className="w-full">
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  添加档位
-                </Button>
+              <div className="space-y-4">
+                {/* 盒子数 */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="box_count" className="text-right">
+                    盒子数
+                  </Label>
+                  <Input
+                    id="box_count"
+                    type="number"
+                    value={advancedSettings.box_count || ''}
+                    onChange={(e) =>
+                      setAdvancedSettings((prev) => ({
+                        ...prev,
+                        box_count: e.target.value ? parseInt(e.target.value) || undefined : undefined
+                      }))
+                    }
+                    placeholder="请输入盒子数"
+                    className="col-span-3"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -854,6 +894,12 @@ export default function RegistrationPage() {
                             <span className="text-gray-600">档位设置:</span>
                             <p className="font-medium">[{batch.coin_levels.join(', ')}]</p>
                           </div>
+                          {batch.box_count !== undefined && (
+                            <div>
+                              <span className="text-gray-600">盒子数:</span>
+                              <p className="font-medium">{batch.box_count}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
