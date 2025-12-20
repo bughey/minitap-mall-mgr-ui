@@ -174,3 +174,992 @@ npm run lint
 5. **扩展性** - 易于添加新功能
 
 项目已经过完整的测试，无 ESLint 警告，构建成功，可以直接用于生产环境。
+
+## 功能接口
+
+- 系统总览页面
+  - 获取系统总览统计
+    - url: /api/v1/dashboard/stats
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 系统统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "total_device_count": 158,        // 总设备数
+          "active_device_count": 142,       // 今日活跃设备数
+          "today_revenue": 12580,           // 今日收益（元）
+          "maintenance_count": 3,           // 维护设备数
+          "today_coin_count": 2847,         // 今日投币数
+          "today_point_back_count": 892,    // 今日退分数
+          "today_coin_back_count": 142,     // 今日退币数
+          "today_order_count": 1231         // 今日订单数
+        }
+      }
+      ```
+    - 说明: 统计数据根据JWT中的tenant_id进行租户隔离
+  
+  - 获取场地设备分布
+    - url: /api/v1/dashboard/place-distribution
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地设备分布数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "places": [
+            {
+              "place_id": 1,
+              "place_name": "万达广场",
+              "total_devices": 42,          // 该场地总设备数
+              "active_devices": 38,         // 今日活跃设备数
+              "active_rate": 90.48          // 活跃率百分比
+            },
+            {
+              "place_id": 2,
+              "place_name": "银泰城",
+              "total_devices": 35,
+              "active_devices": 32,
+              "active_rate": 91.43
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 返回前10个设备数最多的场地，支持多租户隔离
+  
+  - 获取实时告警
+    - url: /api/v1/dashboard/alerts
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 实时告警数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "alerts": [
+            {
+              "id": 1,
+              "device_no": "DEV001",
+              "device_name": "A区娃娃机-001",
+              "place_name": "万达广场",
+              "alert_type": "待处理",          // 告警类型
+              "message": "设备需要维护",
+              "created_at": "2024-01-30T10:15:00Z"
+            },
+            {
+              "id": 2,
+              "device_no": "DEV002",
+              "device_name": "B区推币机-005",
+              "place_name": "银泰城",
+              "alert_type": "待审核",
+              "message": "设备故障",
+              "created_at": "2024-01-30T10:10:00Z"
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 查询device_maintain表中状态为待审核(0)或待处理(1)的记录，最多返回20条
+  
+- 场地管理页面
+  - 场地列表查询
+    - url: /api/v1/place/list
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地列表和汇总统计
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "places": [
+            {
+              "id": 1,
+              "name": "万达广场",
+              "address": "杭州市西湖区万达广场3楼",
+              "status": {
+                "is_active": true,           // 是否有今日活跃设备
+                "has_maintenance": false,    // 是否有维护设备
+                "primary_status": "online"   // 主要状态：online(活跃)/offline(待玩)
+              },
+              "total_devices": 42,           // 设备总数
+              "active_devices": 38,          // 今日活跃设备数
+              "maintenance_devices": 0,      // 维护中的设备数
+              "today_revenue": 3245,         // 今日收益（元）
+              "groups": [                    // 设备分组
+                {
+                  "name": "A区娃娃机",
+                  "devices": 15
+                },
+                {
+                  "name": "B区推币机",
+                  "devices": 12
+                }
+              ]
+            }
+          ],
+          "summary": {                      // 汇总统计
+            "total_places": 4,
+            "total_devices": 143,
+            "active_devices": 130,
+            "today_total_revenue": 11525
+          }
+        }
+      }
+      ```
+    - 说明: 
+      - 状态说明：活跃=有今日活跃设备，待玩=无今日活跃设备，维护=有设备处于维护状态
+      - 一个场地可能同时显示活跃和维护状态
+      - 支持多租户隔离
+
+  - 场地详情查询
+    - url: /api/v1/place/{id}
+    - 请求方式: GET (cookie认证)
+    - 参数: id (路径参数，场地ID)
+    - 返回: 场地详细信息
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 1,
+          "name": "万达广场",
+          "address": "杭州市西湖区万达广场3楼",
+          "status": {
+            "is_active": true,
+            "has_maintenance": false,
+            "primary_status": "online"
+          },
+          "total_devices": 42,
+          "active_devices": 38,
+          "maintenance_devices": 0,
+          "today_revenue": 3245,
+          "groups": [...],
+          "remark": "备注信息",
+          "created_at": "2024-01-30T10:00:00Z",
+          "updated_at": "2024-01-30T10:00:00Z"
+        }
+      }
+      ```
+
+  - 创建场地
+    - url: /api/v1/place
+    - 请求方式: POST (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "name": "万达广场",
+        "address": "杭州市西湖区万达广场3楼",
+        "remark": "备注信息"
+      }
+      ```
+    - 返回: 创建的场地详细信息
+
+  - 更新场地
+    - url: /api/v1/place/{id}
+    - 请求方式: PUT (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "name": "万达广场(更新)",
+        "address": "杭州市西湖区万达广场3楼",
+        "status": 0,
+        "remark": "更新后的备注"
+      }
+      ```
+    - 返回: 更新后的场地详细信息
+
+  - 删除场地
+    - url: /api/v1/place/{id}
+    - 请求方式: DELETE (cookie认证)
+    - 参数: id (路径参数，场地ID)
+    - 返回: 删除结果
+    - 说明: 软删除，不会物理删除数据
+
+  - 创建分组
+    - url: /api/v1/groups
+    - 请求方式: POST (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "place_id": 1,            // 场地ID
+        "name": "A区娃娃机"        // 分组名称
+      }
+      ```
+    - 返回: 创建的分组信息
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 1,
+          "place_id": 1,
+          "name": "A区娃娃机",
+          "device_count": 0,
+          "created_at": "2024-01-30T10:00:00Z",
+          "updated_at": "2024-01-30T10:00:00Z"
+        }
+      }
+      ```
+
+  - 查询分组列表
+    - url: /api/v1/groups
+    - 请求方式: GET (cookie认证)
+    - 查询参数: place_id (可选，指定场地ID)
+    - 返回: 分组列表和统计信息
+    - 示例:
+      - 请求: /api/v1/groups?place_id=1
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "groups": [
+            {
+              "id": 1,
+              "place_id": 1,
+              "name": "A区娃娃机",
+              "device_count": 15,
+              "active_device_count": 12,      // 今日活跃设备数
+              "maintenance_device_count": 1,  // 维护设备数
+              "today_revenue": 850,           // 今日收益（元）
+              "created_at": "2024-01-30T10:00:00Z",
+              "updated_at": "2024-01-30T10:00:00Z"
+            },
+            {
+              "id": 2,
+              "place_id": 1,
+              "name": "B区推币机",
+              "device_count": 12,
+              "active_device_count": 10,
+              "maintenance_device_count": 0,
+              "today_revenue": 620,
+              "created_at": "2024-01-30T10:05:00Z",
+              "updated_at": "2024-01-30T10:05:00Z"
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 
+      - 不指定place_id时返回所有分组
+      - 包含每个分组的设备统计和收益信息
+      - 支持多租户隔离
+
+  - 查询分组详情
+    - url: /api/v1/groups/{id}
+    - 请求方式: GET (cookie认证)
+    - 参数: id (路径参数，分组ID)
+    - 返回: 分组详细信息和统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 1,
+          "place_id": 1,
+          "name": "A区娃娃机",
+          "device_count": 15,
+          "active_device_count": 12,
+          "maintenance_device_count": 1,
+          "today_revenue": 850,
+          "created_at": "2024-01-30T10:00:00Z",
+          "updated_at": "2024-01-30T10:00:00Z"
+        }
+      }
+      ```
+
+  - 更新分组
+    - url: /api/v1/groups/{id}
+    - 请求方式: PUT (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "name": "A区娃娃机(更新)"    // 分组名称(可选)
+      }
+      ```
+    - 返回: 更新后的分组信息
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 1,
+          "place_id": 1,
+          "name": "A区娃娃机(更新)",
+          "device_count": 15,
+          "created_at": "2024-01-30T10:00:00Z",
+          "updated_at": "2024-01-30T12:00:00Z"
+        }
+      }
+      ```
+
+  - 删除分组
+    - url: /api/v1/groups/{id}
+    - 请求方式: DELETE (cookie认证)
+    - 参数: id (路径参数，分组ID)
+    - 返回: 删除结果
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": null
+      }
+      ```
+    - 说明: 软删除，不会物理删除数据，需要确保分组下没有关联设备
+
+- 设备列表页面
+  - 设备列表查询（带筛选和分页）
+    - url: /api/v1/devices
+    - 请求方式: GET (cookie认证)
+    - 查询参数:
+      - place_id (可选): 场地筛选
+      - group_id (可选): 分组筛选
+      - status (可选): 状态筛选，可选值：active/idle/maintenance
+      - device_type (可选): 设备类型筛选
+      - search (可选): 按设备号搜索
+      - page (可选): 页码，从1开始，默认1
+      - page_size (可选): 每页大小，默认10，最大100
+    - 返回: 设备列表和分页信息
+    - 示例:
+      - 请求: /api/v1/devices?place_id=1&status=active&page=1&page_size=10
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 1,
+            "device_no": "DEV001",
+            "name": "娃娃机-001",
+            "device_type": 1,
+            "device_type_name": "娃娃机",
+            "status": 0,
+            "status_name": "活跃",
+            "online": 1,
+            "online_name": "在线",
+            "place_id": 1,
+            "place_name": "万达广场",
+            "group_id": 1,
+            "group_name": "A区娃娃机",
+            "active_time_today": 158,        // 今日活跃时长（分钟）
+            "today_revenue": 245,            // 今日收益（元）
+            "last_update": "2024-01-30T10:15:00Z",
+            "created_at": "2024-01-30T08:00:00Z",
+            "updated_at": "2024-01-30T10:15:00Z"
+          },
+          {
+            "id": 2,
+            "device_no": "DEV002",
+            "name": "推币机-005",
+            "device_type": 2,
+            "device_type_name": "推币机",
+            "status": 0,
+            "status_name": "待玩",
+            "online": 1,
+            "online_name": "在线",
+            "place_id": 2,
+            "place_name": "银泰城",
+            "group_id": 2,
+            "group_name": "B区推币机",
+            "active_time_today": 45,
+            "today_revenue": 128,
+            "last_update": "2024-01-30T10:10:00Z",
+            "created_at": "2024-01-30T08:30:00Z",
+            "updated_at": "2024-01-30T10:10:00Z"
+          }
+        ],
+        "total": 25,                // 总记录数
+        "page_size": 10,            // 每页大小
+        "has_more": true,           // 是否还有更多数据
+        "current_page": 1,          // 当前页码
+        "total_pages": 3            // 总页数
+      }
+      ```
+    - 说明: 
+      - 状态说明：活跃=今日有游戏订单，待玩=今日无游戏订单，维护中=设备状态为维护
+      - 支持多维度筛选和模糊搜索
+      - 支持多租户隔离
+
+  - 设备详情查询
+    - url: /api/v1/devices/{id}
+    - 请求方式: GET (cookie认证)
+    - 参数: id (路径参数，设备ID)
+    - 返回: 设备详细信息和统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 1,
+          "device_no": "DEV001",
+          "name": "娃娃机-001",
+          "device_type": 1,
+          "device_type_name": "娃娃机",
+          "status": 0,
+          "status_name": "活跃",
+          "online": 1,
+          "online_name": "在线",
+          "place_id": 1,
+          "place_name": "万达广场",
+          "group_id": 1,
+          "group_name": "A区娃娃机",
+          "active_time_today": 158,
+          "today_revenue": 245,
+          "last_update": "2024-01-30T10:15:00Z",
+          "created_at": "2024-01-30T08:00:00Z",
+          "updated_at": "2024-01-30T10:15:00Z"
+        }
+      }
+      ```
+
+  - 更新设备信息
+    - url: /api/v1/devices/{id}
+    - 请求方式: PUT (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "name": "娃娃机-001(更新)",      // 设备名称(可选)
+        "device_type": 1,               // 设备类型(可选)
+        "status": 0,                    // 设备状态(可选): 0-正常 1-维护
+        "point_coin": 100,              // 积分每币(可选)
+        "tail_play": 1,                 // 尾数是否可玩(可选): 0-否 1-是
+        "coin_count": 3,                // 投币档位数(可选)
+        "coin_levels": [1, 5, 10]       // 档位数组(可选)
+      }
+      ```
+    - 返回: 更新后的设备详细信息
+    - 说明: 在线状态不能通过此接口更新，只能通过设备服务更新
+
+  - 获取场地筛选选项
+    - url: /api/v1/devices/filter-options/places
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 可筛选的场地列表
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "options": [
+            {
+              "id": 1,
+              "name": "万达广场"
+            },
+            {
+              "id": 2,
+              "name": "银泰城"
+            },
+            {
+              "id": 3,
+              "name": "龙湖天街"
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 只返回有设备的场地，支持多租户隔离
+
+  - 获取分组筛选选项
+    - url: /api/v1/devices/filter-options/groups
+    - 请求方式: GET (cookie认证)
+    - 查询参数: place_id (可选，指定场地ID)
+    - 返回: 可筛选的分组列表
+    - 示例:
+      - 请求: /api/v1/devices/filter-options/groups?place_id=1
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "options": [
+            {
+              "id": 1,
+              "name": "A区娃娃机"
+            },
+            {
+              "id": 2,
+              "name": "B区推币机"
+            },
+            {
+              "id": 3,
+              "name": "C区夹娃娃"
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 
+      - 不指定place_id时返回所有分组
+      - 只返回有设备的分组
+      - 支持多租户隔离
+
+- 设备注册页面
+  - 获取当前注册状态
+    - url: /api/v1/device-register/current
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 当前进行中的设备注册状态
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 3,                          // 注册批次ID，null表示无进行中注册
+          "place_id": 1,
+          "place_name": "万达广场",
+          "group_id": 2,
+          "group_name": "A区娃娃机",
+          "total": 50,                      // 最大注册数
+          "count": 12,                      // 注册成功数
+          "point_coin": 10,                 // 积分每币
+          "tail_play": 1,                   // 尾数是否可玩 0:否 1:是
+          "coin_count": 3,                  // 投币档位数
+          "coin_levels": [1, 5, 10],        // 档位数组
+          "coin_limit": 100,                // 投币限额(无投币器设备专用)
+          "status": 1,                      // 状态 0:未开始 1:进行中 2:已结束 3:已取消
+          "created_at": "2024-01-30T14:20:00Z",
+          "end_time": null                  // 结束时间，进行中为null
+        }
+      }
+      ```
+    - 说明: 任何时候最多只有一条进行中的设备注册记录
+
+  - 获取最近注册日志
+    - url: /api/v1/device-register/logs/recent
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 最近5条设备注册日志
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 15,
+            "device_register_id": 3,
+            "device_no": "DEV-2024-015",
+            "place_name": "万达广场",
+            "group_name": "A区娃娃机",
+            "device_type_name": "夹娃娃机",
+            "result": 1,                    // 结果 0:未开始 1:成功 2:失败
+            "result_msg": "设备注册成功",
+            "created_at": "2024-01-30T14:23:45Z"
+          },
+          {
+            "id": 14,
+            "device_register_id": 3,
+            "device_no": "DEV-2024-014",
+            "place_name": "万达广场",
+            "group_name": "A区娃娃机",
+            "device_type_name": "夹娃娃机",
+            "result": 2,
+            "result_msg": "连接超时",
+            "created_at": "2024-01-30T14:23:20Z"
+          }
+        ]
+      }
+      ```
+
+  - 开始设备注册
+    - url: /api/v1/device-register/start
+    - 请求方式: POST (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "place_id": 1,                  // 场地ID
+        "group_id": 2,                  // 分组ID
+        "total": 50,                    // 注册设备总数
+        "point_coin": 10,               // 积分每币(可选)
+        "tail_play": 1,                 // 尾数是否可玩(可选) 0:否 1:是
+        "coin_count": 3,                // 投币档位数(可选)
+        "coin_levels": [1, 5, 10],      // 档位数组(可选)
+        "coin_limit": 100               // 投币限额(可选，无投币器设备专用)
+      }
+      ```
+    - 返回: 创建的注册批次信息
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "id": 4,
+          "place_id": 1,
+          "place_name": "万达广场",
+          "group_id": 2,
+          "group_name": "A区娃娃机",
+          "total": 50,
+          "count": 0,
+          "point_coin": 10,
+          "tail_play": 1,
+          "coin_count": 3,
+          "coin_levels": [1, 5, 10],
+          "coin_limit": 100,
+          "status": 1,
+          "created_at": "2024-01-30T14:30:00Z",
+          "end_time": null
+        }
+      }
+      ```
+    - 说明: 开始前会检查是否已有进行中的注册，有则返回错误
+
+  - 停止设备注册
+    - url: /api/v1/device-register/stop
+    - 请求方式: POST (cookie认证)
+    - 参数: 无
+    - 返回: 操作结果
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": null
+      }
+      ```
+    - 说明: 将当前进行中的注册状态改为已取消(status=3)
+
+  - 获取注册批次列表
+    - url: /api/v1/device-register/batches
+    - 请求方式: GET (cookie认证)
+    - 查询参数:
+      - page (可选): 页码，从1开始，默认1
+      - page_size (可选): 每页大小，默认10，最大100
+      - search (可选): 搜索场地名称或分组名称
+      - place_id (可选): 场地筛选
+      - group_id (可选): 分组筛选
+      - status (可选): 状态筛选 0:未开始 1:进行中 2:已结束 3:已取消
+    - 返回: 注册批次历史列表
+    - 示例:
+      - 请求: /api/v1/device-register/batches?page=1&page_size=10&search=万达
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 3,
+            "place_id": 1,
+            "place_name": "万达广场",
+            "group_id": 2,
+            "group_name": "A区娃娃机",
+            "total": 50,
+            "count": 12,
+            "point_coin": 10,
+            "tail_play": 1,
+            "coin_count": 3,
+            "coin_levels": [1, 5, 10],
+            "coin_limit": 100,
+            "status": 1,
+            "created_at": "2024-01-30T14:20:00Z",
+            "end_time": null
+          },
+          {
+            "id": 2,
+            "place_id": 2,
+            "place_name": "银泰城",
+            "group_name": "B区推币机",
+            "total": 30,
+            "count": 25,
+            "point_coin": 20,
+            "tail_play": 0,
+            "coin_count": 4,
+            "coin_levels": [1, 2, 5, 10],
+            "coin_limit": 0,
+            "status": 2,
+            "created_at": "2024-01-30T10:00:00Z",
+            "end_time": "2024-01-30T10:30:00Z"
+          }
+        ],
+        "total": 15,
+        "page_size": 10,
+        "has_more": true,
+        "current_page": 1,
+        "total_pages": 2
+      }
+      ```
+    - 说明: 按ID倒序显示，支持多维度筛选和搜索
+
+  - 获取批次注册日志
+    - url: /api/v1/device-register/logs/{batch_id}
+    - 请求方式: GET (cookie认证)
+    - 参数: batch_id (路径参数，注册批次ID)
+    - 返回: 指定批次的设备注册详细日志
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 25,
+            "device_register_id": 3,
+            "device_no": "DEV-2024-025",
+            "place_name": "万达广场",
+            "group_name": "A区娃娃机",
+            "device_type_name": "夹娃娃机",
+            "result": 1,
+            "result_msg": "设备注册成功",
+            "created_at": "2024-01-30T14:25:00Z"
+          },
+          {
+            "id": 24,
+            "device_register_id": 3,
+            "device_no": "DEV-2024-024",
+            "place_name": "万达广场",
+            "group_name": "A区娃娃机",
+            "device_type_name": "夹娃娃机",
+            "result": 2,
+            "result_msg": "设备响应超时",
+            "created_at": "2024-01-30T14:24:30Z"
+          }
+        ]
+      }
+      ```
+
+  - 获取场地列表
+    - url: /api/v1/device-register/places
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地列表
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 1,
+            "name": "万达广场",
+            "address": "杭州市西湖区万达广场3楼",
+            "device_count": 42,
+            "status": 0
+          },
+          {
+            "id": 2,
+            "name": "银泰城",
+            "address": "杭州市拱墅区银泰城4楼",
+            "device_count": 35,
+            "status": 0
+          }
+        ]
+      }
+      ```
+
+  - 获取场地分组列表
+    - url: /api/v1/device-register/groups/{place_id}
+    - 请求方式: GET (cookie认证)
+    - 参数: place_id (路径参数，场地ID)
+    - 返回: 指定场地的分组列表
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 1,
+            "place_id": 1,
+            "name": "A区娃娃机",
+            "device_count": 15
+          },
+          {
+            "id": 2,
+            "place_id": 1,
+            "name": "B区推币机",
+            "device_count": 12
+          },
+          {
+            "id": 3,
+            "place_id": 1,
+            "name": "C区夹娃娃",
+            "device_count": 15
+          }
+        ]
+      }
+      ```
+
+  - 获取设备类型列表
+    - url: /api/v1/device-register/device-types
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 设备类型列表
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": [
+          {
+            "id": 1,
+            "name": "夹娃娃机"
+          },
+          {
+            "id": 2,
+            "name": "推币机"
+          },
+          {
+            "id": 3,
+            "name": "弹珠机"
+          }
+        ]
+      }
+      ```
+
+- 实时监控页面
+  - 获取实时监控统计
+    - url: /api/v1/monitoring/stats
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 实时统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "realTimeRevenue": 12580,      // 实时收益（元），等于投币数
+          "activeDevices": 142,          // 活跃设备数
+          "gameCount": 1847,             // 游戏次数（今日游戏订单数）
+          "gameRefund": 23               // 游戏退分数
+        }
+      }
+      ```
+    - 说明: 实时收益数据与投币数相等(1个币1元)，游戏次数为游戏订单数
+
+  - 获取场地状态监控
+    - url: /api/v1/monitoring/venues
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地状态数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "venues": [
+            {
+              "name": "万达广场",
+              "activeDevices": 38,           // 活跃设备数
+              "gameCount": 524,              // 游戏数
+              "revenue": 3245,               // 收益
+              "refundCount": 18,             // 退分数
+              "status": "normal"             // 状态 normal/warning
+            },
+            {
+              "name": "银泰城",
+              "activeDevices": 32,
+              "gameCount": 445,
+              "revenue": 2890,
+              "refundCount": 35,
+              "status": "warning"            // 退分数>30则为warning
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 返回所有场地的实时状态，退分数超过30时状态为warning
+
+  - 获取实时警报
+    - url: /api/v1/monitoring/alerts
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 实时警报数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "alerts": [
+            {
+              "id": 1,
+              "message": "设备\"DEV001\"无投币应答",
+              "time": "2分钟前",             // 相对时间
+              "type": "warning",             // 固定为warning
+              "venue": "万达广场"
+            },
+            {
+              "id": 2,
+              "message": "设备\"DEV002\"无投币应答",
+              "time": "5分钟前",
+              "type": "warning",
+              "venue": "银泰城"
+            }
+          ]
+        }
+      }
+      ```
+    - 说明: 展示待确认订单，创建时间距当前时间2分钟以上，消息格式为"设备\"设备号\"无投币应答"
