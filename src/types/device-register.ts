@@ -37,6 +37,7 @@ export interface DeviceRegisterBatch {
   coin_count: number;               // 投币档位数
   coin_levels: number[];            // 档位数组
   box_count?: number;               // 盒子数
+  coin_limit: number;               // 投币限额
   status: number;                   // 状态 0:未开始 1:进行中 2:已结束 3:已取消
   created_at: string;
   end_time: string | null;          // 结束时间，进行中为null
@@ -68,6 +69,7 @@ export interface AdvancedSettings {
   tail_play: boolean;
   coin_count: number;
   coin_levels: number[];
+  coin_limit?: number;
   box_count?: number;
 }
 

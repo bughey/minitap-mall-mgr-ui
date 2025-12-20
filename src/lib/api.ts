@@ -229,6 +229,7 @@ export const deviceRegisterApi = {
     tail_play?: number;
     coin_count?: number;
     coin_levels?: number[];
+    coin_limit?: number;
     box_count?: number;
   }) =>
     apiRequest('/device-register/start', {

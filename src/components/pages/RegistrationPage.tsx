@@ -135,6 +135,7 @@ export default function RegistrationPage() {
     tail_play: false,
     coin_count: 6,
     coin_levels: [1, 5, 10, 20, 50, 100],
+    coin_limit: 100,
     box_count: undefined
   });
 
@@ -303,6 +304,7 @@ export default function RegistrationPage() {
       tail_play: batch.tail_play === 1,
       coin_count: batch.coin_count,
       coin_levels: [...batch.coin_levels],
+      coin_limit: batch.coin_limit,
       box_count: batch.box_count
     });
   };
@@ -313,6 +315,7 @@ export default function RegistrationPage() {
       tail_play: false,
       coin_count: 6,
       coin_levels: [1, 5, 10, 20, 50, 100],
+      coin_limit: 100,
       box_count: undefined
     });
   };
@@ -723,6 +726,30 @@ export default function RegistrationPage() {
                       添加档位
                     </Button>
                   </div>
+                </div>
+              </div>
+
+
+              {/* 投币限额 */}
+              <div className="grid grid-cols-4 items-start gap-4 border-t pt-4">
+                <Label htmlFor="coin_limit" className="text-right mt-3">
+                  投币限额
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    id="coin_limit"
+                    type="number"
+                    value={advancedSettings.coin_limit || ''}
+                    onChange={(e) =>
+                      setAdvancedSettings((prev) => ({
+                        ...prev,
+                        coin_limit: e.target.value ? parseInt(e.target.value) || 0 : undefined
+                      }))
+                    }
+                    placeholder="请输入投币限额(0表示不限)"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">无投币器设备专用，限制每局最大投币数，0表示不限制</p>
                 </div>
               </div>
             </div>
