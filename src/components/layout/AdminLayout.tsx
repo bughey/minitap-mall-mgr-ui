@@ -61,14 +61,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = item.href === '/' 
+                      ? pathname === '/' 
+                      : pathname.startsWith(item.href);
                     return (
                       <SidebarMenuItem key={item.name}>
                         <SidebarMenuButton
                           asChild
                           isActive={isActive}
                           tooltip={item.name}
-                          className="text-white/80 hover:bg-white/20 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white">
+                          className="text-white/80 hover:bg-white/20 hover:text-white data-[active=true]:bg-white/30 data-[active=true]:text-white data-[active=true]:font-semibold outline-none focus-visible:ring-0">
                           <Link href={item.href}>
                             <item.icon className="w-5 h-5" />
                             <span>{item.name}</span>
@@ -104,7 +106,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Home className="w-4 h-4" />
                   <span>/</span>
                   <span className="text-foreground font-medium">
-                    {menuItems.find((item) => item.href === pathname)?.name || '系统总览'}
+                    {menuItems.find((item) => 
+                      item.href === '/' 
+                        ? pathname === '/' || pathname === '/index.html'
+                        : pathname.startsWith(item.href)
+                    )?.name || '系统总览'}
                   </span>
                 </div>
               </div>

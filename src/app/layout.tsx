@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "游戏机台运营管理 SaaS 平台",
 };
 
+import AdminLayout from "@/components/layout/AdminLayout";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AdminLayout>
+          {children}
+        </AdminLayout>
       </body>
     </html>
   );
