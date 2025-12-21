@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Computer, Building, Plus, Eye, BarChart3, Settings, User, Bell } from 'lucide-react';
+import { Home, Computer, Building, Plus, Eye, BarChart3, User, Bell } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,

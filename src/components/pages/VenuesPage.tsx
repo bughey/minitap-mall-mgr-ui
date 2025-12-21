@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Building, Computer, DollarSign, Plus, Edit, Eye, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,11 +56,7 @@ export default function VenuesPage() {
     placeId?: number;
   } | null>(null);
 
-  useEffect(() => {
-    fetchPlaceData();
-  }, []);
-
-  const fetchPlaceData = async () => {
+  const fetchPlaceData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -82,7 +78,11 @@ export default function VenuesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [errorToast]);
+
+  useEffect(() => {
+    fetchPlaceData();
+  }, [fetchPlaceData]);
 
   // 格式化数字
   const formatNumber = (num: number) => {
