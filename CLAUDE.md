@@ -15,7 +15,7 @@ npm install
 
 # 启动开发服务器 (使用 Turbopack)
 npm run dev
-# 访问: http://device.minitap.org:3001
+# 访问: http://device.m.minitap.org:3001
 
 # 代码检查
 npm run lint
@@ -30,7 +30,7 @@ npm start
 ### 测试单个组件
 ```bash
 # 直接访问特定页面进行测试
-# 例如: http://device.minitap.org:3001/devices
+# 例如: http://device.m.minitap.org:3001/devices
 ```
 
 ## 架构说明

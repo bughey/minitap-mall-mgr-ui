@@ -81,7 +81,7 @@ npm install
 ```bash
 npm run dev
 ```
-访问: http://device.minitap.org:3001
+访问: http://device.m.minitap.org:3001
 
 ### 构建生产版本
 ```bash
