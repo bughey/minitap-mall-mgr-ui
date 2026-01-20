@@ -17,13 +17,38 @@ const getApiBaseUrl = (): string => {
 
 const API_BASE_URL = getApiBaseUrl();
 
-// 提取根域名的辅助函数
+// 提取“基准域名”的辅助函数
+// - 兼容传统域名: device.minitap.org -> minitap.org
+// - 兼容新开发域名: device.m.minitap.org -> m.minitap.org
+// - localhost / IP 等特殊情况保持原样
+const KNOWN_SUBSYSTEM_PREFIXES = new Set(['op', 'device', 'mall', 'agent', 'settings', 'tenant']);
+
 const getRootDomain = (hostname: string): string => {
-  const parts = hostname.split('.');
-  if (parts.length >= 2) {
-    return parts.slice(-2).join('.');
+  if (hostname === 'localhost' || hostname.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+    return hostname;
   }
-  return hostname;
+
+  const parts = hostname.split('.');
+  if (parts.length <= 2) {
+    return hostname;
+  }
+
+  if (KNOWN_SUBSYSTEM_PREFIXES.has(parts[0])) {
+    return parts.slice(1).join('.');
+  }
+
+  return parts.slice(-2).join('.');
+};
+
+// 后台系统域名后缀规则：m.(tenant.domain)
+// - 若当前已是 m.* 则保持不变
+const toAdminBaseDomain = (domain: string): string => {
+  const domainWithoutPort = domain.split(':')[0];
+  if (domainWithoutPort === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(domainWithoutPort)) {
+    return domainWithoutPort;
+  }
+
+  return domainWithoutPort.startsWith('m.') ? domainWithoutPort : `m.${domainWithoutPort}`;
 };
 
 // 动态获取登录地址
@@ -31,8 +56,9 @@ export const getLoginUrl = (): string => {
   // 在浏览器环境中动态获取
   if (typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
-    const rootDomain = getRootDomain(hostname);
-    return `${protocol}//op.${rootDomain}/login/`;
+    const tenantDomain = getRootDomain(hostname);
+    const adminBaseDomain = toAdminBaseDomain(tenantDomain);
+    return `${protocol}//op.${adminBaseDomain}/login/`;
   }
   
   // 服务端渲染时返回空字符串

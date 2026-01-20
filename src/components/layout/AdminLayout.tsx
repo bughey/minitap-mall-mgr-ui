@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-data-[collapsible=icon]:mx-auto">
                 <Computer className="w-5 h-5 text-white" />
               </div>
-              <span className="text-white font-bold text-lg group-data-[collapsible=icon]:hidden">MiniTap</span>
+              <span className="text-white font-bold text-lg group-data-[collapsible=icon]:hidden">趣兑</span>
             </div>
           </SidebarHeader>
 

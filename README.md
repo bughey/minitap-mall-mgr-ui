@@ -1,4 +1,4 @@
-# MiniTap 设备管理系统 - 前端界面
+# 趣兑 设备管理系统 - 前端界面
 
 基于 Next.js 15 开发的游戏机台运营管理系统前端界面，完全参照原型设计实现。
 
@@ -81,7 +81,7 @@ npm install
 ```bash
 npm run dev
 ```
-访问: http://device.minitap.org:3001
+访问: http://device.m.minitap.org:3001
 
 ### 构建生产版本
 ```bash

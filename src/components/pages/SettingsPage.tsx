@@ -61,7 +61,7 @@ function getBackupStatusBadge(status: string) {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('basic')
-  const [systemName, setSystemName] = useState('MiniTap 设备管理系统')
+  const [systemName, setSystemName] = useState('趣兑 设备管理系统')
   const [timezone, setTimezone] = useState('Asia/Shanghai')
   const [language, setLanguage] = useState('zh-CN')
   const [theme, setTheme] = useState('light')

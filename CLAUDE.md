@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-MiniTap 设备管理系统前端 - 基于 Next.js 15 (App Router) 开发的游戏机台运营管理系统 Web 界面。这是一个完全响应式的单页应用，提供设备生命周期管理、实时监控、报表统计等功能。
+趣兑 设备管理系统前端 - 基于 Next.js 15 (App Router) 开发的游戏机台运营管理系统 Web 界面。这是一个完全响应式的单页应用，提供设备生命周期管理、实时监控、报表统计等功能。
 
 ## 开发命令
 
@@ -15,7 +15,7 @@ npm install
 
 # 启动开发服务器 (使用 Turbopack)
 npm run dev
-# 访问: http://device.minitap.org:3001
+# 访问: http://device.m.minitap.org:3001
 
 # 代码检查
 npm run lint
@@ -30,7 +30,7 @@ npm start
 ### 测试单个组件
 ```bash
 # 直接访问特定页面进行测试
-# 例如: http://device.minitap.org:3001/devices
+# 例如: http://device.m.minitap.org:3001/devices
 ```
 
 ## 架构说明

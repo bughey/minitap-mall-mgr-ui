@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MiniTap 设备管理系统",
+  title: "趣兑设备管理系统",
   description: "游戏机台运营管理 SaaS 平台",
 };
 
