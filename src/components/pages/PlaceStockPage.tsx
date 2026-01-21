@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, ClipboardList, Minus, Plus, RefreshCw, Search, Settings2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, ClipboardList, Minus, Plus, RefreshCw, Search, Settings2, Upload, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToastContainer } from '@/components/ui/toast';
 import { useToast } from '@/hooks/use-toast';
-import { placeApi, placeGiftApi } from '@/lib/api';
+import { placeApi, placeGiftApi, uploadApi } from '@/lib/api';
 import { Place } from '@/types/venue';
 import { getOpTypeText, PlaceGift, PlaceGiftLog, PlaceGiftLogOpType, PlaceGiftListResponse, PlaceGiftLogListResponse } from '@/types/place-gift';
 
@@ -36,6 +36,9 @@ export default function PlaceStockPage() {
   const [giftDialogOpen, setGiftDialogOpen] = useState(false);
   const [giftFormMode, setGiftFormMode] = useState<GiftFormMode>('create');
   const [editingGift, setEditingGift] = useState<PlaceGift | null>(null);
+  const [giftImageUrl, setGiftImageUrl] = useState('');
+  const [giftImageUploading, setGiftImageUploading] = useState(false);
+  const giftImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
   const [adjustGift, setAdjustGift] = useState<PlaceGift | null>(null);
@@ -125,12 +128,14 @@ export default function PlaceStockPage() {
     if (selectedPlaceId === 'none') return;
     setGiftFormMode('create');
     setEditingGift(null);
+    setGiftImageUrl('');
     setGiftDialogOpen(true);
   };
 
   const openEditGift = (gift: PlaceGift) => {
     setGiftFormMode('edit');
     setEditingGift(gift);
+    setGiftImageUrl(gift.image || '');
     setGiftDialogOpen(true);
   };
 
@@ -188,7 +193,7 @@ export default function PlaceStockPage() {
     const formData = new FormData(e.currentTarget);
     const title = String(formData.get('title') || '').trim();
     const subtitle = String(formData.get('subtitle') || '').trim();
-    const image = String(formData.get('image') || '').trim();
+    const image = giftImageUrl.trim();
     const description = String(formData.get('description') || '').trim();
     const cost = Number(formData.get('cost') || 0);
     const point = Number(formData.get('point') || 0);
@@ -248,6 +253,28 @@ export default function PlaceStockPage() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : '提交失败';
       errorToast('操作失败', msg);
+    }
+  };
+
+  const handleSelectGiftImage = () => {
+    giftImageInputRef.current?.click();
+  };
+
+  const handleGiftImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setGiftImageUploading(true);
+      const url = await uploadApi.uploadImage(file);
+      setGiftImageUrl(url);
+      success('上传成功', '图片已上传并回填 URL');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '图片上传失败';
+      errorToast('上传失败', msg);
+    } finally {
+      setGiftImageUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -484,8 +511,78 @@ export default function PlaceStockPage() {
                 </div>
               ) : null}
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="image">图片 URL</Label>
-                <Input id="image" name="image" defaultValue={editingGift?.image || ''} placeholder="可选" />
+                <Label htmlFor="image">图片</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="image"
+                    name="image"
+                    value={giftImageUrl}
+                    onChange={(event) => setGiftImageUrl(event.target.value)}
+                    placeholder="可选：可粘贴图片 URL 或上传"
+                  />
+                  <input
+                    ref={giftImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleGiftImageFileChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSelectGiftImage}
+                    disabled={giftImageUploading}
+                  >
+                    {giftImageUploading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        上传中
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        上传
+                      </>
+                    )}
+                  </Button>
+                  {giftImageUrl ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setGiftImageUrl('')}
+                      disabled={giftImageUploading}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      清空
+                    </Button>
+                  ) : null}
+                </div>
+                {giftImageUrl ? (
+                  <div className="flex items-center gap-3 rounded-md border bg-slate-50 p-2">
+                    <div
+                      className="h-12 w-12 rounded bg-white bg-cover bg-center"
+                      style={{
+                        backgroundImage:
+                          /^https?:\/\//.test(giftImageUrl) || giftImageUrl.startsWith('data:image/')
+                            ? `url(${giftImageUrl})`
+                            : undefined
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs text-muted-foreground">{giftImageUrl}</div>
+                      <a
+                        href={giftImageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-600 underline underline-offset-2"
+                      >
+                        打开原图
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">支持 JPG/PNG/WebP/GIF，最大 5MB</p>
+                )}
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="description">描述</Label>

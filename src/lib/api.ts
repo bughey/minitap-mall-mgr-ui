@@ -75,18 +75,22 @@ interface ApiResponse<T = unknown> {
 export async function apiRequest<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  const headers = new Headers(options.headers);
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (!isFormDataBody && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const defaultOptions: RequestInit = {
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
+    headers,
   };
 
   try {
     const response = await fetch(url, {
       ...defaultOptions,
-      ...options
+      ...options,
+      headers
     });
 
     if (!response.ok) {
@@ -109,6 +113,22 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
     throw error;
   }
 }
+
+// 上传接口
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const resp = await apiRequest<{ url: string }>('/upload/image', {
+      method: 'POST',
+      body: formData
+    });
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.err_message || '图片上传失败');
+    }
+    return resp.data.url;
+  }
+};
 
 // 系统总览页面接口
 export const dashboardApi = {

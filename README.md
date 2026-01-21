@@ -183,6 +183,25 @@ npm run lint
 
 ## 功能接口
 
+- 上传接口
+  - 上传图片
+    - url: /api/v1/upload/image
+    - 请求方式: POST (cookie认证)
+    - 参数: multipart/form-data，包含一个图片文件字段（字段名不限，取第一个带 content-type 的文件字段）
+    - 返回: 图片访问 url（完整 URL，例如 `https://img.minitap.org/upload/2026/01/21/xxxx.jpg`）
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "url": "https://img.minitap.org/upload/2026/01/21/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg"
+        }
+      }
+      ```
+
 - 系统总览页面
   - 获取系统总览统计
     - url: /api/v1/dashboard/stats
