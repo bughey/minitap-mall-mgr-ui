@@ -183,6 +183,72 @@ export const groupApi = {
     })
 };
 
+// 场地库存（place_gift）接口
+export const placeGiftApi = {
+  page: (params: { place_id: number; page?: number; page_size?: number; title?: string }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('place_id', String(params.place_id));
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.page_size) queryParams.append('page_size', String(params.page_size));
+    if (params.title?.trim()) queryParams.append('title', params.title.trim());
+    return apiRequest(`/place/gift/page?${queryParams.toString()}`);
+  },
+
+  create: (data: {
+    place_id: number;
+    title: string;
+    subtitle?: string;
+    image?: string;
+    description?: string;
+    cost: number;
+    point: number;
+    count: number;
+    remark?: string;
+  }) =>
+    apiRequest('/place/gift/create', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  update: (data: {
+    id: number;
+    title?: string;
+    subtitle?: string;
+    image?: string;
+    description?: string;
+    cost?: number;
+    point?: number;
+    remark?: string;
+  }) =>
+    apiRequest('/place/gift/update', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  adjust: (data: { id: number; delta: number; remark?: string }) =>
+    apiRequest('/place/gift/adjust', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  logs: (params: {
+    place_id?: number;
+    place_gift_id?: number;
+    op_type?: number;
+    page?: number;
+    page_size?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params.place_id) queryParams.append('place_id', String(params.place_id));
+    if (params.place_gift_id) queryParams.append('place_gift_id', String(params.place_gift_id));
+    if (params.op_type !== undefined) queryParams.append('op_type', String(params.op_type));
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.page_size) queryParams.append('page_size', String(params.page_size));
+    const qs = queryParams.toString();
+    return apiRequest(`/place/gift/logs${qs ? `?${qs}` : ''}`);
+  }
+};
+
 // 设备管理接口
 export const deviceApi = {
   // 设备列表查询

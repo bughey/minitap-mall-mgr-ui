@@ -33,6 +33,7 @@ src/
 │   ├── layout.tsx         # 根布局
 │   ├── page.tsx           # 首页（系统总览）
 │   ├── devices/           # 设备管理页面
+│   ├── place-stock/       # 场地库存页面
 │   ├── venues/            # 场地管理页面
 │   ├── monitoring/        # 实时监控页面
 │   ├── registration/      # 设备注册页面
@@ -107,6 +108,11 @@ npm run lint
 - 设备分组管理
 - 场地状态监控
 - 场地统计信息
+
+### 2.1 场地库存 (/place-stock)
+- 场地礼品仓库库存（place_gift）列表、搜索、分页
+- 新增礼品库存、编辑礼品信息
+- 调整库存（补货/扣减/纠错），并可查看库存审计日志
 
 ### 3. 设备列表 (/devices)
 - 多维度筛选器
@@ -203,6 +209,23 @@ npm run lint
       }
       ```
     - 说明: 统计数据根据JWT中的tenant_id进行租户隔离
+
+- 场地库存（place_gift）
+  - 分页获取场地礼品库存列表（仓库库存）
+    - url: /api/v1/place/gift/page
+    - 请求方式: GET (cookie认证)
+  - 新增礼品库存（并记录审计日志）
+    - url: /api/v1/place/gift/create
+    - 请求方式: POST (cookie认证)
+  - 编辑礼品信息（不包含库存；可选记录日志）
+    - url: /api/v1/place/gift/update
+    - 请求方式: POST (cookie认证)
+  - 调整库存（补货/扣减/纠错；并记录审计日志）
+    - url: /api/v1/place/gift/adjust
+    - 请求方式: POST (cookie认证)
+  - 库存日志分页
+    - url: /api/v1/place/gift/logs
+    - 请求方式: GET (cookie认证)
   
   - 获取场地设备分布
     - url: /api/v1/dashboard/place-distribution
