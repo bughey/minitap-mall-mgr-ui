@@ -18,7 +18,7 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 
 interface MenuItem {
   name: string;
@@ -121,11 +121,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {/* 通知按钮 */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="w-5 h-5" />
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center">
-                    3
-                  </Badge>
+
                 </Button>
 
                 {/* 用户信息 */}
