@@ -214,18 +214,28 @@ npm run lint
   - 分页获取场地礼品库存列表（仓库库存）
     - url: /api/v1/place/gift/page
     - 请求方式: GET (cookie认证)
+    - query:
+      - place_id: 场地ID（必填）
+      - page: 页码（可选，默认 1）
+      - page_size: 每页数量（可选，默认 20，最大 100）
+      - title: 礼品名称模糊搜索（可选）
+    - 返回: 分页响应（`data[]` 为库存列表项，包含 `count/cost/point` 等字段）
   - 新增礼品库存（并记录审计日志）
     - url: /api/v1/place/gift/create
     - 请求方式: POST (cookie认证)
+    - body: { place_id, title, subtitle?, image?, description?, cost, point, count, remark? }
   - 编辑礼品信息（不包含库存；可选记录日志）
     - url: /api/v1/place/gift/update
     - 请求方式: POST (cookie认证)
+    - body: { id, title?, subtitle?, image?, description?, cost?, point?, remark? }
   - 调整库存（补货/扣减/纠错；并记录审计日志）
     - url: /api/v1/place/gift/adjust
     - 请求方式: POST (cookie认证)
+    - body: { id, delta(可正可负且非0), remark? }
   - 库存日志分页
     - url: /api/v1/place/gift/logs
     - 请求方式: GET (cookie认证)
+    - query: place_id?, place_gift_id?, op_type?(0/1/2), page, page_size
   
   - 获取场地设备分布
     - url: /api/v1/dashboard/place-distribution
