@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Building, Computer, DollarSign, Plus, Edit, Eye, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
+import { Building, Computer, DollarSign, Plus, Edit, Eye, RefreshCw, AlertTriangle, Trash2, UserCog } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import {
 import PlaceFormDialog from '@/components/venue/PlaceFormDialog';
 import GroupFormDialog from '@/components/venue/GroupFormDialog';
 import PlaceDetailDialog from '@/components/venue/PlaceDetailDialog';
+import PlaceAgentDialog from '@/components/venue/PlaceAgentDialog';
 
 export default function VenuesPage() {
   const [places, setPlaces] = useState<Place[]>([]);
@@ -45,6 +46,10 @@ export default function VenuesPage() {
   // 场地详情对话框状态
   const [showPlaceDetail, setShowPlaceDetail] = useState(false);
   const [selectedPlaceForDetail, setSelectedPlaceForDetail] = useState<Place | null>(null);
+
+  // 场地负责代理对话框状态
+  const [showPlaceAgent, setShowPlaceAgent] = useState(false);
+  const [selectedPlaceForAgent, setSelectedPlaceForAgent] = useState<Place | null>(null);
   
   // 确认删除对话框状态
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -389,6 +394,17 @@ export default function VenuesPage() {
                 {/* 操作按钮 */}
                 <div className="flex justify-between flex-row-reverse mt-6 pt-4 border-t">
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlaceForAgent(place);
+                        setShowPlaceAgent(true);
+                      }}
+                    >
+                      <UserCog className="w-3 h-3 mr-1" />
+                      负责代理
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -521,6 +537,25 @@ export default function VenuesPage() {
         }}
         placeId={selectedPlaceForDetail?.id}
         place={selectedPlaceForDetail}
+      />
+
+      {/* 场地负责代理对话框 */}
+      <PlaceAgentDialog
+        open={showPlaceAgent}
+        onOpenChange={(open) => {
+          setShowPlaceAgent(open);
+          if (!open) {
+            setSelectedPlaceForAgent(null);
+          }
+        }}
+        place={
+          selectedPlaceForAgent
+            ? { id: selectedPlaceForAgent.id, name: selectedPlaceForAgent.name }
+            : undefined
+        }
+        onChanged={fetchPlaceData}
+        successToast={success}
+        errorToast={errorToast}
       />
 
       {/* 确认删除对话框 */}

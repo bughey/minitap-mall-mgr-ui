@@ -415,6 +415,62 @@ npm run lint
       }
       ```
 
+  - 场地负责代理（agent_place）
+    - 代理列表（用于选择）
+      - url: /api/v1/agent/list
+      - 请求方式: GET (cookie认证)
+      - query:
+        - status: 代理状态（可选，默认 1；0=待启用 1=正常 2=禁用）
+        - keyword: 关键字（可选，username/nickname/phone/email 模糊匹配）
+        - limit: 返回数量（可选，默认 50，最大 200）
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "agents": [
+            { "id": 1, "username": "agent_001", "nickname": "张三", "status": 1 }
+          ]
+        }
+      }
+      ```
+
+    - 查询场地当前负责代理
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: GET (cookie认证)
+      - 参数: id (路径参数，场地ID)
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "place_id": 1,
+          "agent_id": 100,
+          "agent": { "id": 100, "username": "agent_100", "nickname": "代理A", "status": 1 }
+        }
+      }
+      ```
+      - 说明:
+        - 未绑定时：`agent_id=null` 且 `agent=null`
+
+    - 设置/更换场地负责代理
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: PUT (cookie认证)
+      - body:
+      ```json
+      { "agent_id": 100 }
+      ```
+      - 返回: 同“查询场地当前负责代理”
+
+    - 取消场地负责代理绑定
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: DELETE (cookie认证)
+      - 返回: 标准响应（data 为空）
+
   - 创建场地
     - url: /api/v1/place
     - 请求方式: POST (cookie认证)

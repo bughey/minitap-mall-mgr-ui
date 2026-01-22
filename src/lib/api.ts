@@ -150,6 +150,22 @@ export const placeApi = {
   // 场地详情查询
   getDetail: (id: number) => apiRequest(`/place/${id}`),
 
+  // 场地当前负责代理
+  getAgent: (id: number) => apiRequest(`/place/${id}/agent`),
+
+  // 设置/更换场地负责代理
+  setAgent: (id: number, data: { agent_id: number }) =>
+    apiRequest(`/place/${id}/agent`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+
+  // 取消场地负责代理绑定
+  unsetAgent: (id: number) =>
+    apiRequest(`/place/${id}/agent`, {
+      method: 'DELETE'
+    }),
+
   // 创建场地
   create: (data: { name: string; address: string; remark?: string }) =>
     apiRequest('/place', {
@@ -169,6 +185,18 @@ export const placeApi = {
     apiRequest(`/place/${id}`, {
       method: 'DELETE'
     })
+};
+
+// 代理选择接口（用于场地负责代理绑定）
+export const agentApi = {
+  list: (params?: { status?: number; keyword?: string; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.status !== undefined) queryParams.append('status', String(params.status));
+    if (params?.keyword?.trim()) queryParams.append('keyword', params.keyword.trim());
+    if (params?.limit !== undefined) queryParams.append('limit', String(params.limit));
+    const qs = queryParams.toString();
+    return apiRequest(`/agent/list${qs ? `?${qs}` : ''}`);
+  },
 };
 
 // 分组管理接口
