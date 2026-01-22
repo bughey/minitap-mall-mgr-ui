@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Computer, Building, Plus, Eye, BarChart3, User, Bell } from 'lucide-react';
+import { Home, Computer, Building, Plus, Eye, BarChart3, User, Bell, Boxes } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +18,7 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 
 interface MenuItem {
   name: string;
@@ -29,6 +29,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: '系统总览', href: '/', icon: Home },
   { name: '场地管理', href: '/venues', icon: Building },
+  { name: '场地库存', href: '/place-stock', icon: Boxes },
   { name: '设备列表', href: '/devices', icon: Computer },
   { name: '设备注册', href: '/registration', icon: Plus },
   { name: '实时监控', href: '/monitoring', icon: Eye },
@@ -120,11 +121,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 {/* 通知按钮 */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="w-5 h-5" />
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center">
-                    3
-                  </Badge>
+
                 </Button>
 
                 {/* 用户信息 */}

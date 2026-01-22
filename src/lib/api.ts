@@ -75,18 +75,22 @@ interface ApiResponse<T = unknown> {
 export async function apiRequest<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  const headers = new Headers(options.headers);
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (!isFormDataBody && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const defaultOptions: RequestInit = {
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
+    headers,
   };
 
   try {
     const response = await fetch(url, {
       ...defaultOptions,
-      ...options
+      ...options,
+      headers
     });
 
     if (!response.ok) {
@@ -110,6 +114,22 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
   }
 }
 
+// 上传接口
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const resp = await apiRequest<{ url: string }>('/upload/image', {
+      method: 'POST',
+      body: formData
+    });
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.err_message || '图片上传失败');
+    }
+    return resp.data.url;
+  }
+};
+
 // 系统总览页面接口
 export const dashboardApi = {
   // 获取系统总览统计
@@ -127,8 +147,36 @@ export const placeApi = {
   // 场地列表查询
   getList: () => apiRequest('/place/list'),
 
+  getStats: () => apiRequest('/place/stats'),
+
+  page: (params?: { page?: number; page_size?: number; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.page_size) queryParams.append('page_size', String(params.page_size));
+    if (params?.search?.trim()) queryParams.append('search', params.search.trim());
+
+    const qs = queryParams.toString();
+    return apiRequest(`/place/page?${qs}`);
+  },
+
   // 场地详情查询
   getDetail: (id: number) => apiRequest(`/place/${id}`),
+
+  // 场地当前负责代理
+  getAgent: (id: number) => apiRequest(`/place/${id}/agent`),
+
+  // 设置/更换场地负责代理
+  setAgent: (id: number, data: { agent_id: number }) =>
+    apiRequest(`/place/${id}/agent`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+
+  // 取消场地负责代理绑定
+  unsetAgent: (id: number) =>
+    apiRequest(`/place/${id}/agent`, {
+      method: 'DELETE'
+    }),
 
   // 创建场地
   create: (data: { name: string; address: string; remark?: string }) =>
@@ -149,6 +197,18 @@ export const placeApi = {
     apiRequest(`/place/${id}`, {
       method: 'DELETE'
     })
+};
+
+// 代理选择接口（用于场地负责代理绑定）
+export const agentApi = {
+  list: (params?: { status?: number; keyword?: string; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.status !== undefined) queryParams.append('status', String(params.status));
+    if (params?.keyword?.trim()) queryParams.append('keyword', params.keyword.trim());
+    if (params?.limit !== undefined) queryParams.append('limit', String(params.limit));
+    const qs = queryParams.toString();
+    return apiRequest(`/agent/list${qs ? `?${qs}` : ''}`);
+  },
 };
 
 // 分组管理接口
@@ -181,6 +241,72 @@ export const groupApi = {
     apiRequest(`/groups/${id}`, {
       method: 'DELETE'
     })
+};
+
+// 场地库存（place_gift）接口
+export const placeGiftApi = {
+  page: (params: { place_id: number; page?: number; page_size?: number; title?: string }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('place_id', String(params.place_id));
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.page_size) queryParams.append('page_size', String(params.page_size));
+    if (params.title?.trim()) queryParams.append('title', params.title.trim());
+    return apiRequest(`/place/gift/page?${queryParams.toString()}`);
+  },
+
+  create: (data: {
+    place_id: number;
+    title: string;
+    subtitle?: string;
+    image?: string;
+    description?: string;
+    cost: number;
+    point: number;
+    count: number;
+    remark?: string;
+  }) =>
+    apiRequest('/place/gift/create', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  update: (data: {
+    id: number;
+    title?: string;
+    subtitle?: string;
+    image?: string;
+    description?: string;
+    cost?: number;
+    point?: number;
+    remark?: string;
+  }) =>
+    apiRequest('/place/gift/update', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  adjust: (data: { id: number; delta: number; remark?: string }) =>
+    apiRequest('/place/gift/adjust', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  logs: (params: {
+    place_id?: number;
+    place_gift_id?: number;
+    op_type?: number;
+    page?: number;
+    page_size?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params.place_id) queryParams.append('place_id', String(params.place_id));
+    if (params.place_gift_id) queryParams.append('place_gift_id', String(params.place_gift_id));
+    if (params.op_type !== undefined) queryParams.append('op_type', String(params.op_type));
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.page_size) queryParams.append('page_size', String(params.page_size));
+    const qs = queryParams.toString();
+    return apiRequest(`/place/gift/logs${qs ? `?${qs}` : ''}`);
+  }
 };
 
 // 设备管理接口

@@ -33,6 +33,7 @@ src/
 │   ├── layout.tsx         # 根布局
 │   ├── page.tsx           # 首页（系统总览）
 │   ├── devices/           # 设备管理页面
+│   ├── place-stock/       # 场地库存页面
 │   ├── venues/            # 场地管理页面
 │   ├── monitoring/        # 实时监控页面
 │   ├── registration/      # 设备注册页面
@@ -108,6 +109,11 @@ npm run lint
 - 场地状态监控
 - 场地统计信息
 
+### 2.1 场地库存 (/place-stock)
+- 场地礼品仓库库存（place_gift）列表、搜索、分页
+- 新增礼品库存、编辑礼品信息
+- 调整库存（补货/扣减/纠错），并可查看库存审计日志
+
 ### 3. 设备列表 (/devices)
 - 多维度筛选器
 - 设备信息表格
@@ -177,6 +183,25 @@ npm run lint
 
 ## 功能接口
 
+- 上传接口
+  - 上传图片
+    - url: /api/v1/upload/image
+    - 请求方式: POST (cookie认证)
+    - 参数: multipart/form-data，包含一个图片文件字段（字段名不限，取第一个带 content-type 的文件字段）
+    - 返回: 图片访问 url（完整 URL，例如 `https://img.minitap.org/upload/2026/01/21/xxxx.jpg`）
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "url": "https://img.minitap.org/upload/2026/01/21/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.jpg"
+        }
+      }
+      ```
+
 - 系统总览页面
   - 获取系统总览统计
     - url: /api/v1/dashboard/stats
@@ -203,6 +228,33 @@ npm run lint
       }
       ```
     - 说明: 统计数据根据JWT中的tenant_id进行租户隔离
+
+- 场地库存（place_gift）
+  - 分页获取场地礼品库存列表（仓库库存）
+    - url: /api/v1/place/gift/page
+    - 请求方式: GET (cookie认证)
+    - query:
+      - place_id: 场地ID（必填）
+      - page: 页码（可选，默认 1）
+      - page_size: 每页数量（可选，默认 20，最大 100）
+      - title: 礼品名称模糊搜索（可选）
+    - 返回: 分页响应（`data[]` 为库存列表项，包含 `count/cost/point` 等字段）
+  - 新增礼品库存（并记录审计日志）
+    - url: /api/v1/place/gift/create
+    - 请求方式: POST (cookie认证)
+    - body: { place_id, title, subtitle?, image?, description?, cost, point, count, remark? }
+  - 编辑礼品信息（不包含库存；可选记录日志）
+    - url: /api/v1/place/gift/update
+    - 请求方式: POST (cookie认证)
+    - body: { id, title?, subtitle?, image?, description?, cost?, point?, remark? }
+  - 调整库存（补货/扣减/纠错；并记录审计日志）
+    - url: /api/v1/place/gift/adjust
+    - 请求方式: POST (cookie认证)
+    - body: { id, delta(可正可负且非0), remark? }
+  - 库存日志分页
+    - url: /api/v1/place/gift/logs
+    - 请求方式: GET (cookie认证)
+    - query: place_id?, place_gift_id?, op_type?(0/1/2), page, page_size
   
   - 获取场地设备分布
     - url: /api/v1/dashboard/place-distribution
@@ -277,11 +329,19 @@ npm run lint
     - 说明: 查询device_maintain表中状态为待审核(0)或待处理(1)的记录，最多返回20条
   
 - 场地管理页面
-  - 场地列表查询
+  - 说明:
+    - 场地数量较多 (1000+) 时，推荐使用 `/api/v1/place/page`（分页列表） + `/api/v1/place/stats`（全局汇总统计）。
+    - `/api/v1/place/list` 为旧版全量列表接口（返回包含 `groups[]` 的全量数据），不推荐用于大列表展示，仅用于兼容旧逻辑。
+  - 场地列表查询 (Legacy)
     - url: /api/v1/place/list
     - 请求方式: GET (cookie认证)
     - 参数: 无
     - 返回: 场地列表和汇总统计
+    - 说明: 
+      - **注意**: 此接口为旧版全量查询接口，返回包含 `groups[]` 的全量数据。在场地数量较多 (1000+) 时，请优先使用 `/api/v1/place/page` 接口。
+      - 状态说明：活跃=有今日活跃设备，待玩=无今日活跃设备，维护=有设备处于维护状态
+      - 一个场地可能同时显示活跃和维护状态
+      - 支持多租户隔离
     - 示例:
       - 返回:
       ```json
@@ -325,10 +385,65 @@ npm run lint
         }
       }
       ```
-    - 说明: 
-      - 状态说明：活跃=有今日活跃设备，待玩=无今日活跃设备，维护=有设备处于维护状态
-      - 一个场地可能同时显示活跃和维护状态
-      - 支持多租户隔离
+
+  - 场地分页查询
+    - url: /api/v1/place/page
+    - 请求方式: GET (cookie认证)
+    - query:
+      - page: 页码 (可选，从1开始，默认1)
+      - page_size: 每页数量 (可选，默认 20，最大 100)
+      - search: 场地名称模糊搜索 (可选)
+    - 返回: 分页响应 (`data.data` 为场地列表，包含 `group_count` 字段，显式不包含 `groups[]` 数组)
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "data": [
+            {
+              "id": 1,
+              "name": "万达广场",
+              "address": "杭州市西湖区...",
+              "status": { "is_active": true, "has_maintenance": false, "primary_status": "online" },
+              "total_devices": 42,
+              "active_devices": 38,
+              "maintenance_devices": 0,
+              "today_revenue": 3245,
+              "group_count": 2
+            }
+          ],
+          "total": 1245,
+          "page_size": 20,
+          "has_more": true,
+          "current_page": 1,
+          "total_pages": 63
+        }
+      }
+      ```
+
+  - 场地汇总统计
+    - url: /api/v1/place/stats
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地全局统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "total_places": 1245,
+          "total_devices": 99999,
+          "active_devices": 88888,
+          "today_total_revenue": 11525
+        }
+      }
+      ```
 
   - 场地详情查询
     - url: /api/v1/place/{id}
@@ -362,6 +477,62 @@ npm run lint
         }
       }
       ```
+
+  - 场地负责代理（agent_place）
+    - 代理列表（用于选择）
+      - url: /api/v1/agent/list
+      - 请求方式: GET (cookie认证)
+      - query:
+        - status: 代理状态（可选，默认 1；0=待启用 1=正常 2=禁用）
+        - keyword: 关键字（可选，username/nickname/phone/email 模糊匹配）
+        - limit: 返回数量（可选，默认 50，最大 200）
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "agents": [
+            { "id": 1, "username": "agent_001", "nickname": "张三", "status": 1 }
+          ]
+        }
+      }
+      ```
+
+    - 查询场地当前负责代理
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: GET (cookie认证)
+      - 参数: id (路径参数，场地ID)
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "place_id": 1,
+          "agent_id": 100,
+          "agent": { "id": 100, "username": "agent_100", "nickname": "代理A", "status": 1 }
+        }
+      }
+      ```
+      - 说明:
+        - 未绑定时：`agent_id=null` 且 `agent=null`
+
+    - 设置/更换场地负责代理
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: PUT (cookie认证)
+      - body:
+      ```json
+      { "agent_id": 100 }
+      ```
+      - 返回: 同“查询场地当前负责代理”
+
+    - 取消场地负责代理绑定
+      - url: /api/v1/place/{id}/agent
+      - 请求方式: DELETE (cookie认证)
+      - 返回: 标准响应（data 为空）
 
   - 创建场地
     - url: /api/v1/place

@@ -37,6 +37,27 @@ export interface Place {
   updated_at?: string;        // 更新时间（详情时有）
 }
 
+export interface PlacePageItem {
+  id: number;
+  name: string;
+  address: string;
+  status: PlaceStatus;
+  total_devices: number;
+  active_devices: number;
+  maintenance_devices: number;
+  today_revenue: number;
+  group_count: number;
+}
+
+export interface PlacePageResponse {
+  data: PlacePageItem[];
+  total: number;
+  page_size: number;
+  has_more: boolean;
+  current_page: number;
+  total_pages: number;
+}
+
 // 场地详情接口
 export interface PlaceDetail extends Place {
   remark: string;
