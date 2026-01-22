@@ -329,11 +329,19 @@ npm run lint
     - 说明: 查询device_maintain表中状态为待审核(0)或待处理(1)的记录，最多返回20条
   
 - 场地管理页面
-  - 场地列表查询
+  - 说明:
+    - 场地数量较多 (1000+) 时，推荐使用 `/api/v1/place/page`（分页列表） + `/api/v1/place/stats`（全局汇总统计）。
+    - `/api/v1/place/list` 为旧版全量列表接口（返回包含 `groups[]` 的全量数据），不推荐用于大列表展示，仅用于兼容旧逻辑。
+  - 场地列表查询 (Legacy)
     - url: /api/v1/place/list
     - 请求方式: GET (cookie认证)
     - 参数: 无
     - 返回: 场地列表和汇总统计
+    - 说明: 
+      - **注意**: 此接口为旧版全量查询接口，返回包含 `groups[]` 的全量数据。在场地数量较多 (1000+) 时，请优先使用 `/api/v1/place/page` 接口。
+      - 状态说明：活跃=有今日活跃设备，待玩=无今日活跃设备，维护=有设备处于维护状态
+      - 一个场地可能同时显示活跃和维护状态
+      - 支持多租户隔离
     - 示例:
       - 返回:
       ```json
@@ -377,10 +385,65 @@ npm run lint
         }
       }
       ```
-    - 说明: 
-      - 状态说明：活跃=有今日活跃设备，待玩=无今日活跃设备，维护=有设备处于维护状态
-      - 一个场地可能同时显示活跃和维护状态
-      - 支持多租户隔离
+
+  - 场地分页查询
+    - url: /api/v1/place/page
+    - 请求方式: GET (cookie认证)
+    - query:
+      - page: 页码 (可选，从1开始，默认1)
+      - page_size: 每页数量 (可选，默认 20，最大 100)
+      - search: 场地名称模糊搜索 (可选)
+    - 返回: 分页响应 (`data.data` 为场地列表，包含 `group_count` 字段，显式不包含 `groups[]` 数组)
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "data": [
+            {
+              "id": 1,
+              "name": "万达广场",
+              "address": "杭州市西湖区...",
+              "status": { "is_active": true, "has_maintenance": false, "primary_status": "online" },
+              "total_devices": 42,
+              "active_devices": 38,
+              "maintenance_devices": 0,
+              "today_revenue": 3245,
+              "group_count": 2
+            }
+          ],
+          "total": 1245,
+          "page_size": 20,
+          "has_more": true,
+          "current_page": 1,
+          "total_pages": 63
+        }
+      }
+      ```
+
+  - 场地汇总统计
+    - url: /api/v1/place/stats
+    - 请求方式: GET (cookie认证)
+    - 参数: 无
+    - 返回: 场地全局统计数据
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "total_places": 1245,
+          "total_devices": 99999,
+          "active_devices": 88888,
+          "today_total_revenue": 11525
+        }
+      }
+      ```
 
   - 场地详情查询
     - url: /api/v1/place/{id}

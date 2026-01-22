@@ -147,6 +147,18 @@ export const placeApi = {
   // 场地列表查询
   getList: () => apiRequest('/place/list'),
 
+  getStats: () => apiRequest('/place/stats'),
+
+  page: (params?: { page?: number; page_size?: number; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.page_size) queryParams.append('page_size', String(params.page_size));
+    if (params?.search?.trim()) queryParams.append('search', params.search.trim());
+
+    const qs = queryParams.toString();
+    return apiRequest(`/place/page?${qs}`);
+  },
+
   // 场地详情查询
   getDetail: (id: number) => apiRequest(`/place/${id}`),
 
