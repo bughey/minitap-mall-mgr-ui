@@ -2,12 +2,12 @@
 
 // 实时监控统计数据
 export interface MonitoringStats {
-  realTimeRevenue: number;
+  realTimeRevenue: number; // 实时收益（分，净收益）
   activeDevices: number;
   gameCount: number;
   gameRefund: number;
   totalDevices: number;
-  recentRevenueChange: number;
+  recentRevenueChange: number; // 单位：分（如后端提供）
   recentGameChange: number;
 }
 
@@ -18,7 +18,7 @@ export interface VenueStatus {
   activeDevices: number;
   totalDevices: number;
   gameCount: number;
-  revenue: number;
+  revenue: number; // 场地收益（分，净收益）
   refundCount: number;
   status: 'normal' | 'warning' | 'error';
   lastUpdateTime: string;

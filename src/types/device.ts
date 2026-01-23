@@ -29,7 +29,7 @@ export interface Device {
   group_id: number;                // 分组ID
   group_name: string;              // 分组名称
   active_time_today: number;       // 今日活跃时长（分钟）
-  today_revenue: number;           // 今日收益（元）
+  today_revenue: number;           // 今日收益（分，净收益）
   last_update: string;             // 最后更新时间
   created_at: string;              // 创建时间
   updated_at: string;              // 更新时间
@@ -149,11 +149,13 @@ export const formatActiveTime = (minutes: number): string => {
 
 // 格式化收益金额
 export const formatRevenue = (amount: number): string => {
+  const amountYuan = amount / 100;
   return new Intl.NumberFormat('zh-CN', {
     style: 'currency',
     currency: 'CNY',
-    minimumFractionDigits: 0
-  }).format(amount);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amountYuan);
 };
 
 // 格式化相对时间

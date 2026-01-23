@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { monitoringApi } from '@/lib/api';
 import { MonitoringStats, VenueStatus, MonitoringAlert } from '@/types/monitoring';
+import { formatRevenue } from '@/types/device';
 
 function getAlertIcon(type: string) {
   switch (type) {
@@ -260,10 +261,12 @@ export default function MonitoringPage() {
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">实时收益</h3>
               <p className="text-2xl font-bold text-gray-900">
-                ¥{stats?.realTimeRevenue ? stats.realTimeRevenue.toLocaleString() : '--'}
+                {typeof stats?.realTimeRevenue === 'number' ? formatRevenue(stats.realTimeRevenue) : '--'}
               </p>
               <p className="text-xs text-green-600">
-                {stats?.recentRevenueChange ? `+¥${stats.recentRevenueChange} (最近1小时)` : '暂无数据'}
+                {typeof stats?.recentRevenueChange === 'number'
+                  ? `+${formatRevenue(stats.recentRevenueChange)} (最近1小时)`
+                  : '暂无数据'}
               </p>
             </div>
           </div>
@@ -342,7 +345,7 @@ export default function MonitoringPage() {
                     </div>
                     <div>
                       <span className="text-gray-500">收益:</span>
-                      <span className="ml-2 font-medium">¥{venue.revenue.toLocaleString()}</span>
+                      <span className="ml-2 font-medium">{formatRevenue(venue.revenue)}</span>
                     </div>
                     <div>
                       <span className="text-gray-500">退分数:</span>

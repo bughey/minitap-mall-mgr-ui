@@ -5,6 +5,7 @@ import { ChartBarIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from '@h
 import { reportsApi, placeApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { ToastContainer } from '@/components/ui/toast';
+import { formatRevenue } from '@/types/device';
 import type {
   ReportFilters,
   RevenueReportData,
@@ -422,11 +423,11 @@ export default function ReportsPage() {
             {/* 收益概览 */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">¥{revenueData.summary.total_revenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatRevenue(revenueData.summary.total_revenue)}</p>
                 <p className="text-sm text-gray-600 mt-1">总收益</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">¥{revenueData.summary.today_revenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{formatRevenue(revenueData.summary.today_revenue)}</p>
                 <p className="text-sm text-gray-600 mt-1">今日收益</p>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
@@ -436,7 +437,7 @@ export default function ReportsPage() {
                 <p className="text-sm text-gray-600 mt-1">环比增长</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">¥{revenueData.summary.avg_device_revenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatRevenue(revenueData.summary.avg_device_revenue)}</p>
                 <p className="text-sm text-gray-600 mt-1">设备均值</p>
               </div>
               <div className="text-center p-4 bg-orange-50 rounded-lg">
@@ -478,16 +479,16 @@ export default function ReportsPage() {
                     <tr key={venue.venue_name}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{venue.venue_name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ¥{venue.today.toLocaleString()}
+                        {formatRevenue(venue.today)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ¥{venue.yesterday.toLocaleString()}
+                        {formatRevenue(venue.yesterday)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ¥{venue.week.toLocaleString()}
+                        {formatRevenue(venue.week)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ¥{venue.month.toLocaleString()}
+                        {formatRevenue(venue.month)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {venue.gamePointsMonth.toLocaleString()}

@@ -223,11 +223,13 @@ export default function VenuesPage() {
 
   // 格式化货币
   const formatCurrency = (num: number) => {
+    const amountYuan = num / 100;
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
       currency: 'CNY',
-      minimumFractionDigits: 0
-    }).format(num);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amountYuan);
   };
 
   // 获取状态徽章

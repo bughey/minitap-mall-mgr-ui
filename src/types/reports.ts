@@ -12,10 +12,10 @@ export interface ReportFilters {
 // 场地收益详情
 export interface VenueDetail {
   venue_name: string;
-  today: number;                   // 今日收益
-  yesterday: number;               // 昨日收益
-  week: number;                    // 本周收益
-  month: number;                   // 本月收益
+  today: number;                   // 今日收益（分，净收益）
+  yesterday: number;               // 昨日收益（分，净收益）
+  week: number;                    // 本周收益（分，净收益）
+  month: number;                   // 本月收益（分，净收益）
   gamePointsToday: number;         // 今日游戏退分
   gamePointsYesterday: number;     // 昨日游戏退分
   gamePointsWeek: number;          // 本周游戏退分
@@ -25,10 +25,10 @@ export interface VenueDetail {
 
 // 收益报表汇总数据
 export interface RevenueReportSummary {
-  total_revenue: number;           // 总收益(元)
-  today_revenue: number;           // 今日收益(元)
+  total_revenue: number;           // 总收益(分)
+  today_revenue: number;           // 今日收益(分)
   growth_rate: number;             // 环比增长率(%)
-  avg_device_revenue: number;      // 设备平均收益(元)
+  avg_device_revenue: number;      // 设备平均收益(分)
   total_game_points: number;       // 游戏退分总数
 }
 

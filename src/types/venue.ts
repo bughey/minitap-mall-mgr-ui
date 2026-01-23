@@ -13,7 +13,7 @@ export interface Group {
   device_count: number;
   active_device_count?: number;      // 今日活跃设备数
   maintenance_device_count?: number; // 维护设备数
-  today_revenue?: number;            // 今日收益（元）
+  today_revenue?: number;            // 今日收益（分，净收益）
   created_at: string;
   updated_at: string;
 }
@@ -27,7 +27,7 @@ export interface Place {
   total_devices: number;       // 设备总数
   active_devices: number;      // 今日活跃设备数
   maintenance_devices: number; // 维护中的设备数
-  today_revenue: number;       // 今日收益（元）
+  today_revenue: number;       // 今日收益（分，净收益）
   groups: Array<{             // 设备分组（简化版）
     name: string;
     devices: number;
@@ -45,7 +45,7 @@ export interface PlacePageItem {
   total_devices: number;
   active_devices: number;
   maintenance_devices: number;
-  today_revenue: number;
+  today_revenue: number; // 今日收益（分，净收益）
   group_count: number;
 }
 
@@ -70,7 +70,7 @@ export interface PlaceSummary {
   total_places: number;        // 总场地数
   total_devices: number;       // 总设备数
   active_devices: number;      // 活跃设备数
-  today_total_revenue: number; // 今日总收益
+  today_total_revenue: number; // 今日总收益（分，净收益）
 }
 
 // 场地列表响应接口
