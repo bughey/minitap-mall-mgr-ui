@@ -623,6 +623,11 @@ export default function VenuesPage() {
                             <div className="min-w-0">
                               <div className="font-medium text-foreground truncate">{place.name}</div>
                               <div className="text-xs text-muted-foreground truncate">{place.address}</div>
+                              {place.remark ? (
+                                <div className="text-xs text-muted-foreground/80 truncate">
+                                  备注：{place.remark}
+                                </div>
+                              ) : null}
                             </div>
                             <div className="shrink-0">{getStatusBadge(place)}</div>
                           </div>
@@ -742,6 +747,11 @@ export default function VenuesPage() {
                     <div className="min-w-0 pr-2">
                       <div className="font-bold text-base truncate">{place.name}</div>
                       <div className="text-xs text-muted-foreground truncate mt-1">{place.address}</div>
+                      {place.remark ? (
+                        <div className="text-xs text-muted-foreground truncate mt-1">
+                          备注：{place.remark}
+                        </div>
+                      ) : null}
                     </div>
                     <div className="shrink-0">
                       {getStatusBadge(place)}

@@ -218,7 +218,7 @@ npm run lint
         "data": {
           "total_device_count": 158,        // 总设备数
           "active_device_count": 142,       // 今日活跃设备数
-          "today_revenue": 12580,           // 今日收益（元）
+          "today_revenue": 12580,           // 今日收益（分，净收益=投币*100-退分*10）
           "maintenance_count": 3,           // 维护设备数
           "today_coin_count": 2847,         // 今日投币数
           "today_point_back_count": 892,    // 今日退分数
@@ -364,7 +364,7 @@ npm run lint
               "total_devices": 42,           // 设备总数
               "active_devices": 38,          // 今日活跃设备数
               "maintenance_devices": 0,      // 维护中的设备数
-              "today_revenue": 3245,         // 今日收益（元）
+              "today_revenue": 3245,         // 今日收益（分，净收益）
               "groups": [                    // 设备分组
                 {
                   "name": "A区娃娃机",
@@ -381,7 +381,7 @@ npm run lint
             "total_places": 4,
             "total_devices": 143,
             "active_devices": 130,
-            "today_total_revenue": 11525
+            "today_total_revenue": 11525     // 今日总收益（分，净收益）
           }
         }
       }
@@ -394,7 +394,7 @@ npm run lint
       - page: 页码 (可选，从1开始，默认1)
       - page_size: 每页数量 (可选，默认 20，最大 100)
       - search: 场地名称模糊搜索 (可选)
-    - 返回: 分页响应 (`data.data` 为场地列表，包含 `group_count` 字段，显式不包含 `groups[]` 数组)
+    - 返回: 分页响应 (`data.data` 为场地列表，包含 `group_count` / `remark` 字段，显式不包含 `groups[]` 数组)
     - 示例:
       - 返回:
       ```json
@@ -408,6 +408,7 @@ npm run lint
               "id": 1,
               "name": "万达广场",
               "address": "杭州市西湖区...",
+              "remark": "备注（可选）",
               "status": { "is_active": true, "has_maintenance": false, "primary_status": "online" },
               "total_devices": 42,
               "active_devices": 38,
@@ -620,7 +621,7 @@ npm run lint
               "device_count": 15,
               "active_device_count": 12,      // 今日活跃设备数
               "maintenance_device_count": 1,  // 维护设备数
-              "today_revenue": 850,           // 今日收益（元）
+              "today_revenue": 850,           // 今日收益（分，净收益）
               "created_at": "2024-01-30T10:00:00Z",
               "updated_at": "2024-01-30T10:00:00Z"
             },
@@ -752,7 +753,7 @@ npm run lint
             "group_id": 1,
             "group_name": "A区娃娃机",
             "active_time_today": 158,        // 今日活跃时长（分钟）
-            "today_revenue": 245,            // 今日收益（元）
+            "today_revenue": 245,            // 今日收益（分，净收益）
             "last_update": "2024-01-30T10:15:00Z",
             "created_at": "2024-01-30T08:00:00Z",
             "updated_at": "2024-01-30T10:15:00Z"
@@ -1289,14 +1290,14 @@ npm run lint
         "err_code": "0",
         "err_message": "",
         "data": {
-          "realTimeRevenue": 12580,      // 实时收益（元），等于投币数
+          "realTimeRevenue": 12580,      // 实时收益（分，净收益=投币*100-退分*10）
           "activeDevices": 142,          // 活跃设备数
           "gameCount": 1847,             // 游戏次数（今日游戏订单数）
           "gameRefund": 23               // 游戏退分数
         }
       }
       ```
-    - 说明: 实时收益数据与投币数相等(1个币1元)，游戏次数为游戏订单数
+    - 说明: 实时收益按“投币*100-退分*10”（单位：分）计算，游戏次数为游戏订单数
 
   - 获取场地状态监控
     - url: /api/v1/monitoring/venues
@@ -1316,7 +1317,7 @@ npm run lint
               "name": "万达广场",
               "activeDevices": 38,           // 活跃设备数
               "gameCount": 524,              // 游戏数
-              "revenue": 3245,               // 收益
+              "revenue": 3245,               // 收益（分，净收益）
               "refundCount": 18,             // 退分数
               "status": "normal"             // 状态 normal/warning
             },

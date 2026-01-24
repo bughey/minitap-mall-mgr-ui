@@ -161,6 +161,8 @@ export default function PlaceDetailDialog({
 
   // 使用场地详情或传入的基础场地信息
   const displayPlace = placeDetail || place;
+  const remarkText =
+    displayPlace && typeof displayPlace.remark === 'string' ? displayPlace.remark.trim() : '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -214,35 +216,54 @@ export default function PlaceDetailDialog({
                 </div>
               </CardHeader>
               <CardContent>
-                {/* 统计数据 */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <Computer className="w-5 h-5 text-blue-500" />
+                <div className="space-y-4">
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">备注</div>
+                    <div
+                      className={`text-sm whitespace-pre-wrap break-words ${
+                        remarkText ? 'text-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {remarkText || '暂无'}
                     </div>
-                    <p className="text-2xl font-bold">{formatNumber(displayPlace.total_devices)}</p>
-                    <p className="text-sm text-muted-foreground">设备总数</p>
                   </div>
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <Activity className="w-5 h-5 text-green-500" />
+
+                  {/* 统计数据 */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="flex items-center justify-center mb-2">
+                        <Computer className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <p className="text-2xl font-bold">{formatNumber(displayPlace.total_devices)}</p>
+                      <p className="text-sm text-muted-foreground">设备总数</p>
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{formatNumber(displayPlace.active_devices)}</p>
-                    <p className="text-sm text-muted-foreground">活跃设备</p>
-                  </div>
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <div className="w-5 h-5 bg-yellow-500 rounded-full"></div>
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="flex items-center justify-center mb-2">
+                        <Activity className="w-5 h-5 text-green-500" />
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatNumber(displayPlace.active_devices)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">活跃设备</p>
                     </div>
-                    <p className="text-2xl font-bold text-yellow-600">{formatNumber(displayPlace.maintenance_devices)}</p>
-                    <p className="text-sm text-muted-foreground">维护设备</p>
-                  </div>
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <DollarSign className="w-5 h-5 text-blue-500" />
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="flex items-center justify-center mb-2">
+                        <div className="w-5 h-5 bg-yellow-500 rounded-full"></div>
+                      </div>
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {formatNumber(displayPlace.maintenance_devices)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">维护设备</p>
                     </div>
-                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(displayPlace.today_revenue)}</p>
-                    <p className="text-sm text-muted-foreground">今日收益</p>
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="flex items-center justify-center mb-2">
+                        <DollarSign className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatCurrency(displayPlace.today_revenue)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">今日收益</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

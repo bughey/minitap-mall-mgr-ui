@@ -32,7 +32,7 @@ export interface Place {
     name: string;
     devices: number;
   }>;
-  remark?: string;            // 备注信息（详情时有）
+  remark?: string | null;     // 备注信息
   created_at?: string;        // 创建时间（详情时有）
   updated_at?: string;        // 更新时间（详情时有）
 }
@@ -41,6 +41,7 @@ export interface PlacePageItem {
   id: number;
   name: string;
   address: string;
+  remark?: string | null;
   status: PlaceStatus;
   total_devices: number;
   active_devices: number;
