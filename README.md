@@ -251,6 +251,7 @@ npm run lint
     - url: /api/v1/place/gift/adjust
     - 请求方式: POST (cookie认证)
     - body: { id, delta(可正可负且非0), remark? }
+    - 返回: 标准响应（data.gift 为更新后的礼品库存对象，同列表项）
   - 库存日志分页
     - url: /api/v1/place/gift/logs
     - 请求方式: GET (cookie认证)
