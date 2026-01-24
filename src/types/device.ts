@@ -24,10 +24,10 @@ export interface Device {
   status_name: string;             // 设备状态名称
   online: DeviceOnlineStatus;      // 在线状态：0-离线 1-在线
   online_name: string;             // 在线状态名称
-  place_id: number;                // 场地ID
-  place_name: string;              // 场地名称
-  group_id: number;                // 分组ID
-  group_name: string;              // 分组名称
+  place_id: number | null;         // 场地ID（可能为空）
+  place_name: string | null;       // 场地名称（可能为空）
+  group_id: number | null;         // 分组ID（可能为空）
+  group_name: string | null;       // 分组名称（可能为空）
   active_time_today: number;       // 今日活跃时长（分钟）
   today_revenue: number;           // 今日收益（分，净收益）
   last_update: string;             // 最后更新时间
@@ -45,11 +45,10 @@ export interface DeviceDetail extends Device {
 
 // 设备列表响应接口
 export interface DeviceListResponse {
-  data: Device[];
+  devices: Device[];
   total: number;                   // 总记录数
+  page: number;                    // 页码（从1开始）
   page_size: number;               // 每页大小
-  has_more: boolean;               // 是否还有更多数据
-  current_page: number;            // 当前页码
   total_pages: number;             // 总页数
 }
 

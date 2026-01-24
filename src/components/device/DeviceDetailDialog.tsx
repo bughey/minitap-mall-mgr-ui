@@ -152,11 +152,11 @@ export default function DeviceDetailDialog({
                 <div className="space-y-2">
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">所属场地：</span>
-                    <span>{displayDevice.place_name}</span>
+                    <span>{displayDevice.place_name ?? '-'}</span>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">设备分组：</span>
-                    <span>{displayDevice.group_name}</span>
+                    <span>{displayDevice.group_name ?? '-'}</span>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-muted-foreground">在线状态：</span>

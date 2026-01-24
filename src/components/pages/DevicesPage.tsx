@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Search, Filter, Eye, Edit, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ import {
 } from '@/types/device';
 import DeviceDetailDialog from '@/components/device/DeviceDetailDialog';
 import DeviceEditDialog from '@/components/device/DeviceEditDialog';
+import DeviceReassignGroupDialog from '@/components/device/DeviceReassignGroupDialog';
 
 // 状态选项
 const statusOptions: { value: DeviceBusinessStatus | 'all'; label: string }[] = [
@@ -76,9 +77,26 @@ export default function DevicesPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+
+  // 多选与批量操作
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<Set<number>>(new Set());
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
   
   // Toast 提示
   const { toasts, removeToast, error: errorToast, success } = useToast();
+
+  const selectedCount = selectedDeviceIds.size;
+  const allOnPageSelected =
+    devices.length > 0 && devices.every((d) => selectedDeviceIds.has(d.id));
+  const someOnPageSelected =
+    devices.length > 0 && devices.some((d) => selectedDeviceIds.has(d.id));
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someOnPageSelected && !allOnPageSelected;
+    }
+  }, [someOnPageSelected, allOnPageSelected]);
 
   // 初始化数据
   useEffect(() => {
@@ -162,7 +180,7 @@ export default function DevicesPage() {
       
       if (response.success && response.data) {
         const listData = response.data as DeviceListResponse;
-        setDevices(listData.data || []);
+        setDevices(listData.devices || []);
         setTotalDevices(listData.total || 0);
         setTotalPages(listData.total_pages || 0);
       } else {
@@ -199,6 +217,7 @@ export default function DevicesPage() {
     setSelectedType('all');
     setSearchTerm('');
     setCurrentPage(1);
+    setSelectedDeviceIds(new Set());
   };
 
   // 查看设备详情
@@ -216,6 +235,73 @@ export default function DevicesPage() {
   // 编辑成功后刷新数据
   const handleEditSuccess = () => {
     success('操作成功', '设备信息已更新');
+    fetchDevices();
+  };
+
+  const clearSelection = () => {
+    setSelectedDeviceIds(new Set());
+  };
+
+  const toggleSelectDevice = (deviceId: number, checked: boolean) => {
+    setSelectedDeviceIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(deviceId);
+      } else {
+        next.delete(deviceId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllOnPage = (checked: boolean) => {
+    setSelectedDeviceIds((prev) => {
+      const next = new Set(prev);
+      devices.forEach((d) => {
+        if (checked) {
+          next.add(d.id);
+        } else {
+          next.delete(d.id);
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleConfirmReassignGroup = async (target: {
+    target_place_id: number;
+    target_place_name?: string;
+    target_group_id: number;
+    target_group_name?: string;
+  }) => {
+    const deviceIds = Array.from(selectedDeviceIds);
+    if (deviceIds.length === 0) {
+      return;
+    }
+
+    const resp = await deviceApi.reassignGroup({
+      device_ids: deviceIds,
+      target_group_id: target.target_group_id,
+    });
+
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.err_message || '批量重新分组失败');
+    }
+
+    const data = resp.data as {
+      target_place_id: number;
+      target_group_id: number;
+      updated: number;
+      skipped: number;
+    };
+
+    const targetName =
+      target.target_place_name && target.target_group_name
+        ? `${target.target_place_name}/${target.target_group_name}`
+        : '目标分组';
+
+    success('重新分组成功', `已迁移 ${data.updated} 台，跳过 ${data.skipped} 台（${targetName}）`);
+    clearSelection();
     fetchDevices();
   };
 
@@ -375,9 +461,22 @@ export default function DevicesPage() {
       {/* 设备表格 */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>设备信息</CardTitle>
-            <div className="text-sm text-muted-foreground">共 {totalDevices} 台设备</div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between sm:block">
+              <CardTitle>设备信息</CardTitle>
+              <div className="text-sm text-muted-foreground sm:mt-1">共 {totalDevices} 台设备</div>
+            </div>
+            {selectedCount > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">已选 {selectedCount} 台</div>
+                <Button size="sm" onClick={() => setReassignDialogOpen(true)} disabled={loading}>
+                  重新分组
+                </Button>
+                <Button size="sm" variant="outline" onClick={clearSelection} disabled={loading}>
+                  清空
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -385,6 +484,17 @@ export default function DevicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <input
+                      ref={headerCheckboxRef}
+                      type="checkbox"
+                      checked={allOnPageSelected}
+                      onChange={(e) => toggleSelectAllOnPage(e.target.checked)}
+                      disabled={loading || devices.length === 0}
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      aria-label="全选当前页"
+                    />
+                  </TableHead>
                   <TableHead>设备信息</TableHead>
                   <TableHead>场地/分组</TableHead>
                   <TableHead>类型</TableHead>
@@ -400,6 +510,9 @@ export default function DevicesPage() {
                   // 加载骨架屏
                   Array.from({ length: pageSize }).map((_, index) => (
                     <TableRow key={`skeleton-${index}`}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4 rounded" />
+                      </TableCell>
                       <TableCell>
                         <div className="space-y-2">
                           <Skeleton className="h-4 w-[100px]" />
@@ -428,7 +541,7 @@ export default function DevicesPage() {
                 ) : !devices || devices.length === 0 ? (
                   // 空状态
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="text-muted-foreground">
                         {error ? '获取数据失败' : '暂无设备数据'}
                       </div>
@@ -438,8 +551,18 @@ export default function DevicesPage() {
                   // 真实数据
                   devices?.map((device) => {
                     const businessStatus = getDeviceBusinessStatus(device);
+                    const isSelected = selectedDeviceIds.has(device.id);
                     return (
-                      <TableRow key={device.id}>
+                      <TableRow key={device.id} data-state={isSelected ? 'selected' : undefined}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => toggleSelectDevice(device.id, e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            aria-label={`选择设备 ${device.device_no}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div>
                             <div className="font-medium">{device.device_no}</div>
@@ -448,8 +571,8 @@ export default function DevicesPage() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div>{device.place_name}</div>
-                            <div className="text-sm text-muted-foreground">{device.group_name}</div>
+                            <div>{device.place_name ?? '-'}</div>
+                            <div className="text-sm text-muted-foreground">{device.group_name ?? '-'}</div>
                           </div>
                         </TableCell>
                         <TableCell>{device.device_type_name}</TableCell>
@@ -562,6 +685,22 @@ export default function DevicesPage() {
         onOpenChange={setEditDialogOpen}
         device={selectedDevice || undefined}
         onSuccess={handleEditSuccess}
+      />
+
+      {/* 批量重新分组 */}
+      <DeviceReassignGroupDialog
+        open={reassignDialogOpen}
+        onOpenChange={setReassignDialogOpen}
+        selectedCount={selectedCount}
+        onConfirm={async (target) => {
+          try {
+            await handleConfirmReassignGroup(target);
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : '批量重新分组失败';
+            errorToast('批量重新分组失败', errorMessage);
+            throw err;
+          }
+        }}
       />
 
       {/* Toast 容器 */}

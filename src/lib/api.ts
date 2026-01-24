@@ -361,7 +361,14 @@ export const deviceApi = {
   getGroupOptions: (placeId?: number) => {
     const params = placeId ? `?place_id=${placeId}` : '';
     return apiRequest(`/devices/filter-options/groups${params}`);
-  }
+  },
+
+  // 批量重新分组（支持跨场地迁移）
+  reassignGroup: (data: { device_ids: number[]; target_group_id: number }) =>
+    apiRequest('/devices/reassign-group', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
 };
 
 // 设备注册接口

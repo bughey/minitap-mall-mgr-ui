@@ -79,7 +79,7 @@ export default function PlaceDetailDialog({
       // 获取场地所有设备
       const devicesResponse = await deviceApi.getList({
         place_id: placeId,
-        page_size: 200 // 设置较大值避免分页
+        page_size: 100 // 后端上限为100
       });
 
       if (!devicesResponse.success) {
@@ -87,11 +87,12 @@ export default function PlaceDetailDialog({
       }
 
       const devicesData = devicesResponse.data as DeviceListResponse;
-      const devices = devicesData?.data || [];
+      const devices = devicesData?.devices || [];
 
       // 按分组分类设备
       const devicesByGroup = new Map<number, Device[]>();
       devices.forEach((device: Device) => {
+        if (device.group_id == null) return;
         if (!devicesByGroup.has(device.group_id)) {
           devicesByGroup.set(device.group_id, []);
         }

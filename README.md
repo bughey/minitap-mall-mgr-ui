@@ -842,6 +842,38 @@ npm run lint
     - 返回: 更新后的设备详细信息
     - 说明: 在线状态不能通过此接口更新，只能通过设备服务更新
 
+  - 批量重新分组（支持跨场地迁移）
+    - url: /api/v1/devices/reassign-group
+    - 请求方式: POST (cookie认证)
+    - 请求参数:
+      ```json
+      {
+        "device_ids": [1, 2, 3],     // 设备ID列表（必填，且不可重复）
+        "target_group_id": 10        // 目标分组ID（必填）
+      }
+      ```
+    - 返回: 批量处理结果
+    - 示例:
+      - 返回:
+      ```json
+      {
+        "success": true,
+        "err_code": "0",
+        "err_message": "",
+        "data": {
+          "target_place_id": 5,      // 目标场地ID（取目标分组所属场地）
+          "target_group_id": 10,     // 目标分组ID
+          "updated": 2,              // 实际迁移数量
+          "skipped": 1               // 已在目标分组的数量
+        }
+      }
+      ```
+    - 说明:
+      - 允许跨场地迁移：以目标分组所属 `place_id` 作为目标场地
+      - 入参校验：`device_ids` 不能为空、不可重复；`target_group_id` 必须存在且属于当前租户
+      - 原子性：任一设备不存在/无权限/目标分组非法 → 整单失败并回滚（不会部分成功）
+      - 不设置单次数量上限，但建议前端按批次提交，避免超大请求导致超时
+
   - 获取场地筛选选项
     - url: /api/v1/devices/filter-options/places
     - 请求方式: GET (cookie认证)
