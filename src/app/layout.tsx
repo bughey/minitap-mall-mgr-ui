@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fira_Code, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const notoSans = Noto_Sans_SC({
+  variable: "--font-noto-sans-sc",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const firaCode = Fira_Code({
+  variable: "--font-fira-code",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "趣兑设备管理系统",
-  description: "游戏机台运营管理 SaaS 平台",
+  title: "积分商城管理系统",
+  description: "积分商城后台管理系统",
 };
 
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${notoSans.variable} ${firaCode.variable} antialiased`}
       >
         <AdminLayout>
           {children}

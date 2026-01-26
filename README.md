@@ -1,123 +1,24 @@
-# 趣兑 设备管理系统 - 前端界面
+# 积分商城管理系统 - 前端界面（mall-mgr-ui）
 
-基于 Next.js 15 开发的游戏机台运营管理系统前端界面，完全参照原型设计实现。
+基于 Next.js（App Router）+ TypeScript + Tailwind CSS v4，静态导出用于 nginx 部署。
 
-## 🎯 项目概述
+## 本地开发
 
-这是一个现代化的设备管理系统前端，专为游戏机台运营管理设计，提供完整的设备生命周期管理功能。
+- 域名：`mall.m.minitap.org`
+- 端口：`3004`
+- API：同域 `/api/v1/*`，`credentials: include`
+- 认证：`err_code=401` 自动跳转 `op.m.(tenant.domain)/login/`
 
-### 主要特性
+## 常用命令
 
-- **完整的系统总览** - 关键指标展示、场地分布、实时警告
-- **设备管理** - 设备列表、筛选、状态监控
-- **场地管理** - 场地卡片展示、设备分组管理
-- **实时监控** - 实时数据更新、告警流、场地状态
-- **设备注册** - 批量注册新设备、注册日志
-- **报表统计** - 多维度数据报表、导出功能
-- **系统设置** - 用户管理、通知设置、安全配置、数据备份
-
-## 🛠️ 技术栈
-
-- **框架**: Next.js 15 (App Router)
-- **语言**: TypeScript
-- **样式**: Tailwind CSS 4
-- **图标**: Heroicons
-- **构建工具**: Turbopack
-- **代码规范**: ESLint
-
-## 🏗️ 项目结构
-
-```
-src/
-├── app/                    # Next.js App Router 页面
-│   ├── layout.tsx         # 根布局
-│   ├── page.tsx           # 首页（系统总览）
-│   ├── devices/           # 设备管理页面
-│   ├── place-stock/       # 场地库存页面
-│   ├── venues/            # 场地管理页面
-│   ├── monitoring/        # 实时监控页面
-│   ├── registration/      # 设备注册页面
-│   ├── reports/           # 报表统计页面
-│   └── settings/          # 系统设置页面
-├── components/
-│   ├── layout/
-│   │   └── AdminLayout.tsx # 管理后台布局组件
-│   └── pages/              # 页面组件
-│       ├── OverviewPage.tsx
-│       ├── DevicesPage.tsx
-│       ├── VenuesPage.tsx
-│       ├── MonitoringPage.tsx
-│       ├── RegistrationPage.tsx
-│       ├── ReportsPage.tsx
-│       └── SettingsPage.tsx
-└── globals.css            # 全局样式
-```
-
-## 🎨 设计特色
-
-### 现代化 UI/UX
-- **响应式设计** - 支持桌面、平板、移动端
-- **深蓝色主题** - 专业的视觉风格
-- **卡片式布局** - 清晰的信息层次
-- **实时数据更新** - 动态的用户体验
-
-### 交互体验
-- **折叠侧边栏** - 桌面端可折叠导航
-- **移动端适配** - 完美的移动端体验
-- **状态指示** - 直观的设备状态展示
-- **数据可视化** - 进度条、统计图表
-
-## 🚀 快速开始
-
-### 环境要求
-- Node.js 18+ 
-- npm 或 yarn
-
-### 安装依赖
 ```bash
 npm install
-```
-
-### 开发运行
-```bash
 npm run dev
-```
-访问: http://device.m.minitap.org:3001
-
-### 构建生产版本
-```bash
 npm run build
-npm start
-```
-
-### 代码检查
-```bash
 npm run lint
 ```
 
-## 📱 页面功能
-
-### 1. 系统总览 (/)
-- 关键指标卡片：总设备数、活跃设备、今日收益、维护设备
-- 场地设备分布进度条
-- 实时警告面板
-- 今日数据统计
-
-### 2. 场地管理 (/venues)
-- 场地卡片网格展示
-- 设备分组管理
-- 场地状态监控
-- 场地统计信息
-
-### 2.1 场地库存 (/place-stock)
-- 场地礼品仓库库存（place_gift）列表、搜索、分页
-- 新增礼品库存、编辑礼品信息
-- 调整库存（补货/扣减/纠错），并可查看库存审计日志
-
-### 3. 设备列表 (/devices)
-- 多维度筛选器
-- 设备信息表格
-- 状态标签
+构建产物输出到 `out/`。
 - 分页导航
 
 ### 4. 设备注册 (/registration)

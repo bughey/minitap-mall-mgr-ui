@@ -2,7 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Computer, Building, Plus, Eye, BarChart3, User, Bell, Boxes } from 'lucide-react';
+import {
+  BadgePercent,
+  Bell,
+  FolderTree,
+  Home,
+  Image,
+  LayoutDashboard,
+  Package,
+  ReceiptText,
+  TicketPercent,
+  Undo2,
+  User,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -27,14 +39,14 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { name: '系统总览', href: '/', icon: Home },
-  { name: '场地管理', href: '/venues', icon: Building },
-  { name: '场地库存', href: '/place-stock', icon: Boxes },
-  { name: '设备列表', href: '/devices', icon: Computer },
-  { name: '设备注册', href: '/registration', icon: Plus },
-  { name: '实时监控', href: '/monitoring', icon: Eye },
-  { name: '报表统计', href: '/reports', icon: BarChart3 }
-  /* { name: '系统设置', href: '/settings', icon: Settings }, */
+  { name: '仪表盘', href: '/', icon: LayoutDashboard },
+  { name: 'Banner', href: '/content/banners', icon: Image },
+  { name: '活动', href: '/content/activities', icon: BadgePercent },
+  { name: '分类', href: '/catalog/categories', icon: FolderTree },
+  { name: '商品', href: '/catalog/products', icon: Package },
+  { name: '订单', href: '/orders', icon: ReceiptText },
+  { name: '退款审核', href: '/after-sales/refunds', icon: Undo2 },
+  { name: '优惠券', href: '/marketing/coupons', icon: TicketPercent },
 ];
 
 interface AdminLayoutProps {
@@ -47,13 +59,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon" className="bg-gradient-to-b from-[#4F46E5] to-[#3730A3] shadow-2xl">
+        <Sidebar collapsible="icon" className="bg-gradient-to-b from-[#1E40AF] to-[#3B82F6] shadow-2xl">
           <SidebarHeader>
             <div className="flex items-center space-x-3 px-2">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-data-[collapsible=icon]:mx-auto">
-                <Computer className="w-5 h-5 text-white" />
+                <LayoutDashboard className="w-5 h-5 text-white" />
               </div>
-              <span className="text-white font-bold text-lg group-data-[collapsible=icon]:hidden">趣兑</span>
+              <span className="text-white font-bold text-lg group-data-[collapsible=icon]:hidden">积分商城</span>
             </div>
           </SidebarHeader>
 
@@ -96,33 +108,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset>
-          {/* 顶部导航栏 */}
-          <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4">
-              {/* 左侧：侧边栏触发器和面包屑 */}
-              <div className="flex items-center space-x-4">
-                <SidebarTrigger className="md:hidden" />
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Home className="w-4 h-4" />
-                  <span>/</span>
-                  <span className="text-foreground font-medium">
-                    {menuItems.find((item) => 
-                      item.href === '/' 
-                        ? pathname === '/' || pathname === '/index.html'
-                        : pathname.startsWith(item.href)
-                    )?.name || '系统总览'}
-                  </span>
+          <SidebarInset>
+            {/* 顶部导航栏 */}
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              <div className="flex items-center justify-between px-6 py-4">
+                {/* 左侧：侧边栏触发器和面包屑 */}
+                <div className="flex items-center space-x-4">
+                  <SidebarTrigger className="md:hidden" />
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    <Home className="w-4 h-4" />
+                    <span>/</span>
+                    <span className="text-foreground font-medium">
+                      {menuItems.find((item) => 
+                        item.href === '/' 
+                          ? pathname === '/' || pathname === '/index.html'
+                          : pathname.startsWith(item.href)
+                    )?.name || '仪表盘'}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
               {/* 右侧工具栏 */}
-              <div className="flex items-center space-x-4">
-                {/* 通知按钮 */}
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="w-5 h-5" />
+                <div className="flex items-center space-x-4">
+                  {/* 通知按钮 */}
+                  <Button variant="ghost" size="icon" className="relative" aria-label="通知">
+                    <Bell className="w-5 h-5" />
 
-                </Button>
+                  </Button>
 
                 {/* 用户信息 */}
                 <div className="flex items-center space-x-3">
@@ -131,7 +143,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   </div>
                   <div className="hidden sm:block">
                     <div className="text-sm font-medium">管理员</div>
-                    <div className="text-xs text-muted-foreground">admin@minitap.com</div>
+                    <div className="text-xs text-muted-foreground">mall.mgr</div>
                   </div>
                 </div>
               </div>

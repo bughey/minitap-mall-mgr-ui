@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, ClipboardList, Minus, Plus, RefreshCw, Search, Settings2, Upload, X } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, ClipboardList, Minus, Plus, RefreshCw, Search, Settings2, Upload, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +14,34 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToastContainer } from '@/components/ui/toast';
 import { useToast } from '@/hooks/use-toast';
-import { placeApi, placeGiftApi, uploadApi } from '@/lib/api';
+import { giftTemplateApi, placeApi, placeGiftApi, uploadApi } from '@/lib/api';
 import { Place } from '@/types/venue';
+import { GiftTemplate, GiftTemplateListResponse } from '@/types/gift-template';
 import { getOpTypeText, PlaceGift, PlaceGiftLog, PlaceGiftLogOpType, PlaceGiftListResponse, PlaceGiftLogListResponse } from '@/types/place-gift';
 
 type GiftFormMode = 'create' | 'edit';
+
+type GiftFormPreset = {
+  title: string;
+  subtitle: string;
+  image: string;
+  description: string;
+  cost: number;
+  point: number;
+  count: number;
+  remark: string;
+};
+
+const blankGiftPreset: GiftFormPreset = {
+  title: '',
+  subtitle: '',
+  image: '',
+  description: '',
+  cost: 0,
+  point: 0,
+  count: 0,
+  remark: ''
+};
 
 export default function PlaceStockPage() {
   const [places, setPlaces] = useState<Place[]>([]);
@@ -34,11 +59,23 @@ export default function PlaceStockPage() {
   const [searchTitle, setSearchTitle] = useState('');
 
   const [giftDialogOpen, setGiftDialogOpen] = useState(false);
+  const [giftDialogKey, setGiftDialogKey] = useState(0);
   const [giftFormMode, setGiftFormMode] = useState<GiftFormMode>('create');
   const [editingGift, setEditingGift] = useState<PlaceGift | null>(null);
+  const [giftFormPreset, setGiftFormPreset] = useState<GiftFormPreset>(blankGiftPreset);
   const [giftImageUrl, setGiftImageUrl] = useState('');
   const [giftImageUploading, setGiftImageUploading] = useState(false);
   const giftImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [templates, setTemplates] = useState<GiftTemplate[]>([]);
+  const [templateTotal, setTemplateTotal] = useState(0);
+  const [templateTotalPages, setTemplateTotalPages] = useState(0);
+  const [templatePage, setTemplatePage] = useState(1);
+  const [templatePageSize] = useState(10);
+  const [templateSearchTitle, setTemplateSearchTitle] = useState('');
+  const [templateStatusFilter, setTemplateStatusFilter] = useState<'all' | '0' | '1'>('0');
 
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
   const [adjustGift, setAdjustGift] = useState<PlaceGift | null>(null);
@@ -119,23 +156,123 @@ export default function PlaceStockPage() {
     }
   };
 
+  const fetchTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const resp = await giftTemplateApi.page({
+        page: templatePage,
+        page_size: templatePageSize,
+        title: templateSearchTitle.trim() ? templateSearchTitle.trim() : undefined,
+        status: templateStatusFilter === 'all' ? undefined : Number(templateStatusFilter)
+      });
+      if (resp.success && resp.data) {
+        const data = resp.data as GiftTemplateListResponse;
+        setTemplates(data.data || []);
+        setTemplateTotal(data.total || 0);
+        setTemplateTotalPages(data.total_pages || 0);
+      } else {
+        throw new Error(resp.err_message || '获取礼品库失败');
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '获取礼品库失败';
+      errorToast('加载失败', msg);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!templateDialogOpen) return;
+    fetchTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateDialogOpen, templatePage, templateStatusFilter]);
+
   const handleSearch = () => {
+    if (currentPage === 1) {
+      fetchGifts();
+      return;
+    }
     setCurrentPage(1);
-    fetchGifts();
+  };
+
+  const handleTemplateSearch = () => {
+    if (templatePage === 1) {
+      fetchTemplates();
+      return;
+    }
+    setTemplatePage(1);
+  };
+
+  const handleTemplatePageChange = (next: number) => {
+    if (next < 1 || next > templateTotalPages) return;
+    setTemplatePage(next);
+  };
+
+  const applyTemplateToCreate = (template: GiftTemplate) => {
+    if (selectedPlaceId === 'none') return;
+    const title = (template.title || '').trim();
+    if (!title) {
+      errorToast('操作失败', '模板标题为空');
+      return;
+    }
+
+    const duplicated = gifts.some((g) => (g.title || '').trim() === title);
+    if (duplicated) {
+      errorToast('无法创建', '该场地已存在同名礼品');
+      return;
+    }
+
+    setGiftFormMode('create');
+    setEditingGift(null);
+    setGiftFormPreset({
+      title,
+      subtitle: String(template.subtitle || ''),
+      image: String(template.image || ''),
+      description: String(template.description || ''),
+      cost: template.default_cost ?? 0,
+      point: template.default_point ?? 0,
+      count: 0,
+      remark: ''
+    });
+    setGiftImageUrl(template.image || '');
+    setGiftDialogKey((v) => v + 1);
+    setTemplateDialogOpen(false);
+    setGiftDialogOpen(true);
+  };
+
+  const openTemplatePicker = () => {
+    if (selectedPlaceId === 'none') return;
+    setTemplateSearchTitle('');
+    setTemplateStatusFilter('0');
+    setTemplatePage(1);
+    setTemplateDialogOpen(true);
   };
 
   const openCreateGift = () => {
     if (selectedPlaceId === 'none') return;
     setGiftFormMode('create');
     setEditingGift(null);
+    setGiftFormPreset(blankGiftPreset);
     setGiftImageUrl('');
+    setGiftDialogKey((v) => v + 1);
     setGiftDialogOpen(true);
   };
 
   const openEditGift = (gift: PlaceGift) => {
     setGiftFormMode('edit');
     setEditingGift(gift);
+    setGiftFormPreset({
+      title: gift.title || '',
+      subtitle: String(gift.subtitle || ''),
+      image: String(gift.image || ''),
+      description: String(gift.description || ''),
+      cost: gift.cost ?? 0,
+      point: gift.point ?? 0,
+      count: gift.count ?? 0,
+      remark: ''
+    });
     setGiftImageUrl(gift.image || '');
+    setGiftDialogKey((v) => v + 1);
     setGiftDialogOpen(true);
   };
 
@@ -202,6 +339,16 @@ export default function PlaceStockPage() {
 
     if (!title) {
       errorToast('校验失败', '请输入礼品名称');
+      return;
+    }
+    const duplicated =
+      giftFormMode === 'create'
+        ? gifts.some((g) => (g.title || '').trim() === title)
+        : editingGift
+          ? gifts.some((g) => g.id !== editingGift.id && (g.title || '').trim() === title)
+          : false;
+    if (duplicated) {
+      errorToast('校验失败', '该场地已存在同名礼品');
       return;
     }
     if (Number.isNaN(cost) || cost < 0) {
@@ -381,6 +528,10 @@ export default function PlaceStockPage() {
           </div>
 
           <div className="flex items-end justify-end gap-2">
+            <Button variant="outline" onClick={openTemplatePicker} disabled={selectedPlaceId === 'none'}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              从礼品库选择
+            </Button>
             <Button onClick={openCreateGift} disabled={selectedPlaceId === 'none'}>
               <Plus className="mr-2 h-4 w-4" />
               新增礼品
@@ -481,33 +632,197 @@ export default function PlaceStockPage() {
         </CardContent>
       </Card>
 
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>从礼品库选择</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="sm:col-span-2 space-y-2">
+              <Label>模板名称</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="搜索模板名称"
+                  value={templateSearchTitle}
+                  onChange={(e) => setTemplateSearchTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleTemplateSearch();
+                  }}
+                />
+                <Button onClick={handleTemplateSearch}>
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={fetchTemplates} disabled={loadingTemplates}>
+                  <RefreshCw className={`mr-2 h-4 w-4 ${loadingTemplates ? 'animate-spin' : ''}`} />
+                  刷新
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                选择模板后将预填新增表单；同一场地不允许同名礼品（已存在会被拦截）
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>状态</Label>
+              <Select
+                value={templateStatusFilter}
+                onValueChange={(v) => {
+                  setTemplatePage(1);
+                  setTemplateStatusFilter(v as 'all' | '0' | '1');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="请选择状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">启用</SelectItem>
+                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="1">停用</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">默认仅展示启用模板</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>礼品</TableHead>
+                  <TableHead className="w-[140px]">默认积分</TableHead>
+                  <TableHead className="w-[140px]">默认成本(分)</TableHead>
+                  <TableHead className="w-[120px]">状态</TableHead>
+                  <TableHead className="w-[160px] text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loadingTemplates ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8">
+                      <div className="space-y-2">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : templates.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div>暂无模板</div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href="/gift-templates" onClick={() => setTemplateDialogOpen(false)}>
+                            去礼品库创建模板
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  templates.map((t) => {
+                    const title = (t.title || '').trim();
+                    const duplicated = gifts.some((g) => (g.title || '').trim() === title);
+                    const disabled = t.status !== 0 || duplicated;
+                    return (
+                      <TableRow key={t.id}>
+                        <TableCell className="min-w-0">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {t.image ? (
+                              <div
+                                className="h-10 w-10 shrink-0 rounded-md bg-white bg-cover bg-center border"
+                                style={{ backgroundImage: `url(${t.image})` }}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 shrink-0 rounded-md border bg-muted/30" />
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-medium text-gray-900 truncate">{t.title}</div>
+                              <div className="text-xs text-muted-foreground truncate">{t.subtitle || t.description || ''}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{t.default_point}</TableCell>
+                        <TableCell>{t.default_cost}</TableCell>
+                        <TableCell>
+                          {t.status === 0 ? <Badge variant="default">启用</Badge> : <Badge variant="secondary">停用</Badge>}
+                          {duplicated ? <Badge variant="outline" className="ml-2">已存在</Badge> : null}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" onClick={() => applyTemplateToCreate(t)} disabled={disabled}>
+                            使用
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              共 {templateTotal} 条 · 第 {templatePage}/{templateTotalPages || 1} 页
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleTemplatePageChange(templatePage - 1)}
+                disabled={templatePage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                上一页
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleTemplatePageChange(templatePage + 1)}
+                disabled={templatePage >= templateTotalPages}
+              >
+                下一页
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={giftDialogOpen} onOpenChange={setGiftDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{giftFormMode === 'create' ? '新增礼品库存' : '编辑礼品信息'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleGiftSubmit} className="space-y-4">
+          <form key={giftDialogKey} onSubmit={handleGiftSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">礼品名称</Label>
-                <Input id="title" name="title" defaultValue={editingGift?.title || ''} placeholder="例如：可乐" required />
+                <Input id="title" name="title" defaultValue={giftFormPreset.title} placeholder="例如：可乐" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subtitle">副标题</Label>
-                <Input id="subtitle" name="subtitle" defaultValue={editingGift?.subtitle || ''} placeholder="可选" />
+                <Input id="subtitle" name="subtitle" defaultValue={giftFormPreset.subtitle} placeholder="可选" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="point">兑换积分</Label>
-                <Input id="point" name="point" type="number" min={0} defaultValue={editingGift?.point ?? 0} required />
+                <Input id="point" name="point" type="number" min={0} defaultValue={giftFormPreset.point} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cost">成本(分)</Label>
-                <Input id="cost" name="cost" type="number" min={0} defaultValue={editingGift?.cost ?? 0} required />
+                <Input id="cost" name="cost" type="number" min={0} defaultValue={giftFormPreset.cost} required />
               </div>
               {giftFormMode === 'create' ? (
                 <div className="space-y-2">
                   <Label htmlFor="count">初始库存</Label>
-                  <Input id="count" name="count" type="number" min={0} defaultValue={0} required />
+                  <Input id="count" name="count" type="number" min={0} defaultValue={giftFormPreset.count} required />
                 </div>
               ) : null}
               <div className="space-y-2 sm:col-span-2">
@@ -586,11 +901,16 @@ export default function PlaceStockPage() {
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="description">描述</Label>
-                <Input id="description" name="description" defaultValue={editingGift?.description || ''} placeholder="可选" />
+                <Input id="description" name="description" defaultValue={giftFormPreset.description} placeholder="可选" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="remark">备注（可选，写入日志）</Label>
-                <Input id="remark" name="remark" placeholder="例如：首次录入/修改兑换积分" />
+                <Input
+                  id="remark"
+                  name="remark"
+                  defaultValue={giftFormPreset.remark}
+                  placeholder="例如：首次录入/修改兑换积分"
+                />
               </div>
             </div>
 
