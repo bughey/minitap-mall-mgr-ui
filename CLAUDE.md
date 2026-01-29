@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-趣兑 设备管理系统前端 - 基于 Next.js 15 (App Router) 开发的游戏机台运营管理系统 Web 界面。这是一个完全响应式的单页应用，提供设备生命周期管理、实时监控、报表统计等功能。
+趣兑 设备管理系统前端 - 基于 Next.js 16 (App Router) 开发的游戏机台运营管理系统 Web 界面。这是一个完全响应式的单页应用，提供设备生命周期管理、实时监控、报表统计等功能。
 
 ## 开发命令
 
@@ -36,7 +36,7 @@ npm start
 ## 架构说明
 
 ### 技术栈
-- **框架**: Next.js 15 (App Router)
+- **框架**: Next.js 16 (App Router)
 - **语言**: TypeScript (严格模式)
 - **样式**: Tailwind CSS 4
 - **UI 组件**: 自定义组件库 (基于 Radix UI)
