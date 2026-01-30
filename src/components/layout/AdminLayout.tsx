@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,6 +10,7 @@ import {
   Home,
   Image,
   LayoutDashboard,
+  LogOut,
   Package,
   ReceiptText,
   TicketPercent,
@@ -30,6 +32,8 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
+import { getLoginUrl, sysApi } from '@/lib/api';
 
 
 interface MenuItem {
@@ -55,6 +59,24 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
+  const [logoutLoading, setLogoutLoading] = React.useState(false);
+
+  const redirectToLogin = () => {
+    const loginUrl = getLoginUrl();
+    window.location.href = loginUrl || '/';
+  };
+
+  const handleConfirmLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      await sysApi.logout();
+    } catch (error) {
+      console.error('登出失败:', error);
+    } finally {
+      redirectToLogin();
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -136,6 +158,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                   </Button>
 
+                  {/* 退出登录 */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative"
+                    aria-label="退出登录"
+                    onClick={() => setLogoutDialogOpen(true)}
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </Button>
+
                 {/* 用户信息 */}
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
@@ -152,6 +185,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* 页面内容 */}
           <main className="flex-1 p-6">{children}</main>
+
+          <ConfirmDialog
+            open={logoutDialogOpen}
+            onOpenChange={(open) => {
+              if (!logoutLoading) setLogoutDialogOpen(open);
+            }}
+            title="确认退出登录"
+            description="退出后需要重新登录才能继续使用。"
+            confirmText="退出登录"
+            cancelText="取消"
+            variant="destructive"
+            loading={logoutLoading}
+            onConfirm={handleConfirmLogout}
+          />
         </SidebarInset>
       </div>
     </SidebarProvider>

@@ -172,6 +172,14 @@ export async function apiPageRequest<T = unknown>(
   return result as PageResponse<T>;
 }
 
+// 系统相关接口
+export const sysApi = {
+  logout: () =>
+    apiRequest<void>('/sys/user/logout', {
+      method: 'POST',
+    }),
+};
+
 // 上传接口
 export const uploadApi = {
   uploadImage: async (file: File): Promise<string> => {
