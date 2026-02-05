@@ -7,6 +7,7 @@
 ## [Unreleased]
 
 ### 变更
+- 左侧菜单文案：Banner 更名为「轮播图」。
 - 依赖升级：升级 Next.js 至 16.1.6（App Router），同步升级 `eslint-config-next`。
 - 工具链：采用 ESLint Flat Config，`npm run lint` 改为 `eslint .` 以兼容 Next 16 CLI。
 
@@ -15,4 +16,3 @@
 
 ### 安全
 - 依赖：执行 `npm audit fix` 并确保 `npm audit` 为 0 告警。
-

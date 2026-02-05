@@ -44,7 +44,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: '仪表盘', href: '/', icon: LayoutDashboard },
-  { name: 'Banner', href: '/content/banners', icon: Image },
+  { name: '轮播图', href: '/content/banners', icon: Image },
   { name: '活动', href: '/content/activities', icon: BadgePercent },
   { name: '分类', href: '/catalog/categories', icon: FolderTree },
   { name: '商品', href: '/catalog/products', icon: Package },

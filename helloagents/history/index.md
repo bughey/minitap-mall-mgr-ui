@@ -9,6 +9,7 @@
 | 时间戳 | 功能名称 | 类型 | 状态 | 方案包路径 |
 |--------|----------|------|------|------------|
 | 202601300014 | upgrade_next16_audit0 | 安全 | ✅已完成 | [2026-01/202601300014_upgrade_next16_audit0](2026-01/202601300014_upgrade_next16_audit0/) |
+| 202602051448 | rename_banner_menu | 文案 | ✅已完成 | [2026-02/202602051448_rename_banner_menu](2026-02/202602051448_rename_banner_menu/) |
 
 ---
 
@@ -17,3 +18,7 @@
 ### 2026-01
 
 - [202601300014_upgrade_next16_audit0](2026-01/202601300014_upgrade_next16_audit0/) - 升级 Next.js 16 并清零 npm audit 告警
+
+### 2026-02
+
+- [202602051448_rename_banner_menu](2026-02/202602051448_rename_banner_menu/) - 左侧菜单 Banner 更名为轮播图
