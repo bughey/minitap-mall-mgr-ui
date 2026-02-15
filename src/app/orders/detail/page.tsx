@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, RefreshCw, Truck } from 'lucide-react';
+import { ArrowLeft, KeyRound, RefreshCw, ShieldAlert, Truck } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -133,10 +133,12 @@ function OrderDetailInner() {
     void fetchDetail();
   }, [fetchDetail]);
 
-  const canShip = detail?.status === 1;
+  const virtualDelivery = detail?.virtual_delivery ?? null;
+  const isVirtualOrder = Boolean(virtualDelivery);
+  const canShip = detail?.status === 1 && !isVirtualOrder;
 
   const openShip = () => {
-    if (!detail) return;
+    if (!detail || isVirtualOrder) return;
     setShipForm({
       express_company: detail.express_company ?? '',
       express_no: detail.express_no ?? '',
@@ -196,10 +198,17 @@ function OrderDetailInner() {
             <RefreshCw className="h-4 w-4 mr-2" />
             刷新
           </Button>
-          <Button onClick={openShip} disabled={!canShip || loading || shipping}>
-            <Truck className="h-4 w-4 mr-2" />
-            发货
-          </Button>
+          {isVirtualOrder ? (
+            <Button variant="outline" disabled>
+              <KeyRound className="h-4 w-4 mr-2" />
+              虚拟订单无需发货
+            </Button>
+          ) : (
+            <Button onClick={openShip} disabled={!canShip || loading || shipping}>
+              <Truck className="h-4 w-4 mr-2" />
+              发货
+            </Button>
+          )}
         </div>
       </div>
 
@@ -294,7 +303,9 @@ function OrderDetailInner() {
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div className="font-medium">物流信息</div>
                 <div className="text-xs text-muted-foreground">
-                  说明：接口为幂等发货；已发货订单不支持修改物流（不一致会返回错误）
+                  {isVirtualOrder
+                    ? '虚拟卡密订单不走物流，以下字段仅保留兼容。'
+                    : '说明：接口为幂等发货；已发货订单不支持修改物流（不一致会返回错误）'}
                 </div>
               </div>
 
@@ -317,6 +328,45 @@ function OrderDetailInner() {
                 </div>
               </div>
             </div>
+
+            {virtualDelivery ? (
+              <div className="rounded-lg border bg-card p-4 md:col-span-3">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div className="font-medium">虚拟发放信息</div>
+                  <Badge variant="secondary">自动发卡</Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4 text-sm">
+                  <div>
+                    <div className="text-xs text-muted-foreground">发放类型</div>
+                    <div>{virtualDelivery.delivery_type}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">已发卡数量</div>
+                    <div className="tabular-nums">{virtualDelivery.delivered_count}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">SKU 数</div>
+                    <div className="tabular-nums">{virtualDelivery.sku_count}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">批次数</div>
+                    <div className="tabular-nums">{virtualDelivery.batch_count}</div>
+                  </div>
+                  <div className="md:col-span-4">
+                    <div className="text-xs text-muted-foreground">发放时间</div>
+                    <div>{virtualDelivery.delivered_at ? new Date(virtualDelivery.delivered_at).toLocaleString() : '—'}</div>
+                  </div>
+                </div>
+
+                <Alert className="mt-3">
+                  <ShieldAlert className="h-4 w-4" />
+                  <AlertTitle>安全提示</AlertTitle>
+                  <AlertDescription>
+                    管理端仅展示发放摘要，不展示卡号/卡密明文；客服沟通中请勿索要用户卡密截图或转发敏感内容。
+                  </AlertDescription>
+                </Alert>
+              </div>
+            ) : null}
           </div>
 
           <div className="rounded-lg border bg-card overflow-x-auto">

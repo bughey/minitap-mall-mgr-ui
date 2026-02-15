@@ -383,6 +383,7 @@ export default function ProductsPage() {
               <TableHead>ID</TableHead>
               <TableHead>商品</TableHead>
               <TableHead>分类</TableHead>
+              <TableHead>履约</TableHead>
               <TableHead>价格</TableHead>
               <TableHead>状态</TableHead>
               <TableHead>销量</TableHead>
@@ -394,14 +395,14 @@ export default function ProductsPage() {
             {loading ? (
               Array.from({ length: 8 }).map((_, idx) => (
                 <TableRow key={idx}>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <Skeleton className="h-8 w-full" />
                   </TableCell>
                 </TableRow>
               ))
             ) : items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                   暂无数据
                 </TableCell>
               </TableRow>
@@ -427,6 +428,11 @@ export default function ProductsPage() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {categoryMap.get(product.category_id) ?? `#${product.category_id}`}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={product.fulfill_type === 1 ? 'default' : 'secondary'}>
+                      {product.fulfill_type === 1 ? '虚拟卡密' : '实物'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="tabular-nums">
                     {product.min_price} ~ {product.max_price}

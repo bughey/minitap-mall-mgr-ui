@@ -406,6 +406,7 @@ export interface ProductListItem {
   max_price: number;
   category_id: number;
   brand: string | null;
+  fulfill_type: number;
   status: number;
   sort_order: number;
   view_count: number;
@@ -430,6 +431,7 @@ export interface ProductDetail {
   category_id: number;
   brand: string | null;
   tags: string[] | null;
+  fulfill_type: number;
   status: number;
   sort_order: number;
   view_count: number;
@@ -472,6 +474,7 @@ export const productApi = {
     category_id: number;
     brand?: string;
     tags?: string[];
+    fulfill_type?: number;
     status?: number;
     sort_order?: number;
     saas_id?: string;
@@ -496,6 +499,7 @@ export const productApi = {
       category_id: number;
       brand: string;
       tags: string[];
+      fulfill_type: number;
       status: number;
       sort_order: number;
     }>
@@ -515,6 +519,42 @@ export const productApi = {
     apiRequest(`/product/${id}`, {
       method: 'DELETE',
     }),
+};
+
+export interface VirtualCardImportItem {
+  payload: Record<string, unknown>;
+}
+
+export interface VirtualCardImportResult {
+  batch_id: number;
+  imported: number;
+  duplicated: number;
+  invalid: number;
+}
+
+export interface VirtualCardStockResult {
+  total: number;
+  available: number;
+  delivered: number;
+  invalid: number;
+}
+
+export const virtualCardApi = {
+  importBatch: (data: {
+    sku_id: number;
+    batch_name?: string;
+    remark?: string;
+    items: VirtualCardImportItem[];
+  }) =>
+    apiRequest<VirtualCardImportResult>('/virtual-card/batch/import', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  stock: (sku_id: number) =>
+    apiRequest<VirtualCardStockResult>(
+      `/virtual-card/stock?sku_id=${encodeURIComponent(sku_id)}`
+    ),
 };
 
 export interface SkuItem {
@@ -772,6 +812,14 @@ export interface MallOrderItemDto {
   comment_status: number;
 }
 
+export interface MallOrderVirtualDeliverySummary {
+  delivery_type: string;
+  delivered_count: number;
+  delivered_at: string | null;
+  sku_count: number;
+  batch_count: number;
+}
+
 export interface MallOrderDetailDto {
   id: number;
   order_no: string;
@@ -795,6 +843,7 @@ export interface MallOrderDetailDto {
   remark: string | null;
   created_at: string;
   items: MallOrderItemDto[];
+  virtual_delivery?: MallOrderVirtualDeliverySummary | null;
 }
 
 export const orderApi = {

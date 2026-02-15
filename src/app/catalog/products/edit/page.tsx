@@ -54,10 +54,13 @@ import {
   skuApi,
   specApi,
   uploadApi,
+  virtualCardApi,
   type ProductCategoryNode,
   type ProductDetail,
   type SkuItem,
   type SpecItem,
+  type VirtualCardImportResult,
+  type VirtualCardStockResult,
 } from '@/lib/api';
 
 type ProductForm = {
@@ -70,6 +73,7 @@ type ProductForm = {
   min_price: number;
   max_price: number;
   category_id: number;
+  fulfill_type: number;
   brand: string;
   tagsText: string;
   status: number;
@@ -86,6 +90,7 @@ const defaultProductForm: ProductForm = {
   min_price: 0,
   max_price: 0,
   category_id: 0,
+  fulfill_type: 0,
   brand: '',
   tagsText: '',
   status: 1,
@@ -148,6 +153,49 @@ const parseSpecsObject = (text: string): Record<string, unknown> => {
   return parsed as Record<string, unknown>;
 };
 
+const parseVirtualCardImportItems = (text: string): { payload: Record<string, unknown> }[] => {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    throw new Error('请填写待导入的卡密数据');
+  }
+
+  const normalizePayload = (input: unknown, index: number): { payload: Record<string, unknown> } => {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      throw new Error(`第 ${index + 1} 条不是 JSON 对象`);
+    }
+    const maybePayload = (input as Record<string, unknown>).payload;
+    if (maybePayload && typeof maybePayload === 'object' && !Array.isArray(maybePayload)) {
+      return { payload: maybePayload as Record<string, unknown> };
+    }
+    return { payload: input as Record<string, unknown> };
+  };
+
+  if (trimmed.startsWith('[')) {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error('JSON 数组不能为空');
+    }
+    return parsed.map((item, index) => normalizePayload(item, index));
+  }
+
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length === 0) {
+    throw new Error('请输入至少一条 JSON');
+  }
+  return lines.map((line, index) => {
+    try {
+      const parsed = JSON.parse(line) as unknown;
+      return normalizePayload(parsed, index);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`第 ${index + 1} 行 JSON 解析失败：${message}`);
+    }
+  });
+};
+
 const flattenCategories = (nodes: ProductCategoryNode[], out: ProductCategoryNode[] = []) => {
   for (const node of nodes) {
     out.push(node);
@@ -199,6 +247,15 @@ function ProductEditInner() {
   const [stockTarget, setStockTarget] = useState<SkuItem | null>(null);
   const [stockDelta, setStockDelta] = useState(0);
   const [stockSaving, setStockSaving] = useState(false);
+  const [virtualStocks, setVirtualStocks] = useState<Record<number, VirtualCardStockResult>>({});
+  const [virtualStockLoading, setVirtualStockLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importTarget, setImportTarget] = useState<SkuItem | null>(null);
+  const [importPayloadText, setImportPayloadText] = useState('');
+  const [importBatchName, setImportBatchName] = useState('');
+  const [importRemark, setImportRemark] = useState('');
+  const [importResult, setImportResult] = useState<VirtualCardImportResult | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const [deleteSkuOpen, setDeleteSkuOpen] = useState(false);
   const [deleteSkuTarget, setDeleteSkuTarget] = useState<SkuItem | null>(null);
@@ -225,6 +282,7 @@ function ProductEditInner() {
       min_price: p.min_price,
       max_price: p.max_price,
       category_id: p.category_id,
+      fulfill_type: p.fulfill_type,
       brand: p.brand ?? '',
       tagsText: tags.join(', '),
       status: p.status,
@@ -288,6 +346,56 @@ function ProductEditInner() {
     void fetchAll();
   }, [fetchAll]);
 
+  const reloadSkuList = useCallback(async (): Promise<SkuItem[]> => {
+    if (!productId) return [];
+    const resp = await skuApi.list(productId);
+    if (!resp.success || !resp.data) {
+      throw new Error(resp.err_message || '获取 SKU 失败');
+    }
+    setSkus(resp.data);
+    return resp.data;
+  }, [productId]);
+
+  const refreshVirtualStocks = useCallback(
+    async (targetSkus: SkuItem[]) => {
+      if (targetSkus.length === 0) {
+        setVirtualStocks({});
+        return;
+      }
+      try {
+        setVirtualStockLoading(true);
+        const stockPairs = await Promise.all(
+          targetSkus.map(async (sku) => {
+            const resp = await virtualCardApi.stock(sku.id);
+            if (!resp.success || !resp.data) {
+              throw new Error(resp.err_message || `获取 SKU#${sku.id} 卡密库存失败`);
+            }
+            return [sku.id, resp.data] as const;
+          })
+        );
+        setVirtualStocks(Object.fromEntries(stockPairs));
+      } finally {
+        setVirtualStockLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isEdit || form.fulfill_type !== 1) {
+      setVirtualStocks({});
+      return;
+    }
+    if (skus.length === 0) {
+      setVirtualStocks({});
+      return;
+    }
+    void refreshVirtualStocks(skus).catch((e) => {
+      const message = e instanceof Error ? e.message : String(e);
+      toast.error('卡密库存加载失败', message);
+    });
+  }, [isEdit, form.fulfill_type, skus, refreshVirtualStocks, toast]);
+
   const uploadAndSet = async (file: File, setter: (url: string) => void) => {
     try {
       const url = await uploadApi.uploadImage(file);
@@ -308,6 +416,7 @@ function ProductEditInner() {
     if (form.min_price > form.max_price) return 'min_price 不能大于 max_price';
     if (form.sort_order < 0) return 'sort_order 不能为负数';
     if (![0, 1].includes(form.status)) return 'status 仅支持 0/1';
+    if (![0, 1].includes(form.fulfill_type)) return 'fulfill_type 仅支持 0/1';
     return null;
   };
 
@@ -335,6 +444,7 @@ function ProductEditInner() {
       min_price: form.min_price,
       max_price: form.max_price,
       category_id: form.category_id,
+      fulfill_type: form.fulfill_type,
       brand: form.brand.trim() ? form.brand.trim() : undefined,
       tags: tags.length ? tags : undefined,
       status: form.status,
@@ -541,8 +651,7 @@ function ProductEditInner() {
 
       toast.success(skuEditing ? '更新成功' : '创建成功');
       setSkuDialogOpen(false);
-      const listResp = await skuApi.list(productId);
-      if (listResp.success && listResp.data) setSkus(listResp.data);
+      await reloadSkuList();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       toast.error('保存失败', message);
@@ -585,7 +694,10 @@ function ProductEditInner() {
       }
       toast.success('库存已调整');
       setStockDialogOpen(false);
-      setSkus((prev) => prev.map((it) => (it.id === resp.data!.id ? resp.data! : it)));
+      const latestSkus = await reloadSkuList();
+      if (form.fulfill_type === 1) {
+        await refreshVirtualStocks(latestSkus);
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       toast.error('调整失败', message);
@@ -610,13 +722,58 @@ function ProductEditInner() {
       toast.success('删除成功');
       setDeleteSkuOpen(false);
       setDeleteSkuTarget(null);
-      const listResp = await skuApi.list(productId);
-      if (listResp.success && listResp.data) setSkus(listResp.data);
+      await reloadSkuList();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       toast.error('删除失败', message);
     } finally {
       setDeleteSkuLoading(false);
+    }
+  };
+
+  const openImportVirtualCards = (sku: SkuItem) => {
+    setImportTarget(sku);
+    setImportPayloadText('');
+    setImportBatchName('');
+    setImportRemark('');
+    setImportResult(null);
+    setImportDialogOpen(true);
+  };
+
+  const doImportVirtualCards = async () => {
+    if (!importTarget) return;
+    let items: { payload: Record<string, unknown> }[];
+    try {
+      items = parseVirtualCardImportItems(importPayloadText);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      toast.error('导入参数错误', message);
+      return;
+    }
+
+    try {
+      setImporting(true);
+      const resp = await virtualCardApi.importBatch({
+        sku_id: importTarget.id,
+        batch_name: importBatchName.trim() || undefined,
+        remark: importRemark.trim() || undefined,
+        items,
+      });
+      if (!resp.success || !resp.data) {
+        throw new Error(resp.err_message || '导入失败');
+      }
+      setImportResult(resp.data);
+      toast.success(
+        '导入完成',
+        `新增 ${resp.data.imported}，重复 ${resp.data.duplicated}，无效 ${resp.data.invalid}`
+      );
+      const latestSkus = await reloadSkuList();
+      await refreshVirtualStocks(latestSkus);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      toast.error('导入失败', message);
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -873,6 +1030,24 @@ function ProductEditInner() {
               </div>
 
               <div className="space-y-2">
+                <Label>履约类型</Label>
+                <Select
+                  value={String(form.fulfill_type)}
+                  onValueChange={(v) =>
+                    setForm((prev) => ({ ...prev, fulfill_type: Number(v) }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="请选择履约类型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">实物商品</SelectItem>
+                    <SelectItem value="1">虚拟卡密商品</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="p-sort">排序</Label>
                 <Input
                   id="p-sort"
@@ -988,11 +1163,29 @@ function ProductEditInner() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between gap-3">
-            <span>SKU 列表</span>
-            <Button type="button" onClick={openCreateSku} disabled={!skuReady}>
-              <Plus className="h-4 w-4 mr-2" />
-              新增 SKU
-            </Button>
+            <div className="flex items-center gap-2">
+              <span>SKU 列表</span>
+              {form.fulfill_type === 1 ? (
+                <Badge variant="secondary">虚拟卡密商品</Badge>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2">
+              {form.fulfill_type === 1 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void refreshVirtualStocks(skus)}
+                  disabled={!skuReady || virtualStockLoading}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {virtualStockLoading ? '刷新中…' : '刷新卡密库存'}
+                </Button>
+              ) : null}
+              <Button type="button" onClick={openCreateSku} disabled={!skuReady}>
+                <Plus className="h-4 w-4 mr-2" />
+                新增 SKU
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1016,6 +1209,7 @@ function ProductEditInner() {
                     <TableHead>规格</TableHead>
                     <TableHead>价格</TableHead>
                     <TableHead>库存</TableHead>
+                    {form.fulfill_type === 1 ? <TableHead>卡密库存</TableHead> : null}
                     <TableHead>状态</TableHead>
                     <TableHead className="text-right">操作</TableHead>
                   </TableRow>
@@ -1030,6 +1224,22 @@ function ProductEditInner() {
                       </TableCell>
                       <TableCell className="tabular-nums">{sku.price}</TableCell>
                       <TableCell className="tabular-nums">{sku.stock}</TableCell>
+                      {form.fulfill_type === 1 ? (
+                        <TableCell className="text-xs text-muted-foreground">
+                          {virtualStocks[sku.id] ? (
+                            <div className="space-y-1">
+                              <div className="tabular-nums">
+                                可用 {virtualStocks[sku.id].available} / 总量 {virtualStocks[sku.id].total}
+                              </div>
+                              <div className="tabular-nums">
+                                已发 {virtualStocks[sku.id].delivered} / 作废 {virtualStocks[sku.id].invalid}
+                              </div>
+                            </div>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Switch
@@ -1048,6 +1258,11 @@ function ProductEditInner() {
                           <Button variant="outline" size="sm" onClick={() => openAdjustStock(sku)}>
                             库存
                           </Button>
+                          {form.fulfill_type === 1 ? (
+                            <Button variant="outline" size="sm" onClick={() => openImportVirtualCards(sku)}>
+                              导入卡密
+                            </Button>
+                          ) : null}
                           <Button variant="outline" size="sm" onClick={() => openEditSku(sku)}>
                             <Edit className="h-4 w-4 mr-1" />
                             编辑
@@ -1363,6 +1578,98 @@ function ProductEditInner() {
             </Button>
             <Button type="button" onClick={() => void saveStock()} disabled={stockSaving}>
               {stockSaving ? '保存中…' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Virtual card import dialog */}
+      <Dialog
+        open={importDialogOpen}
+        onOpenChange={(open) => {
+          setImportDialogOpen(open);
+          if (!open) {
+            setImportTarget(null);
+            setImportPayloadText('');
+            setImportBatchName('');
+            setImportRemark('');
+            setImportResult(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[720px]">
+          <DialogHeader>
+            <DialogTitle>导入卡密库存</DialogTitle>
+            <DialogDescription>
+              支持 JSON 数组或 JSON Lines（每行一个 JSON）。示例字段：
+              <span className="font-mono"> vendor/card_no/card_pwd/expire_at/redeem_url/tips</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="space-y-1">
+              <Label>SKU</Label>
+              <div className="text-sm text-muted-foreground">
+                {importTarget ? `${importTarget.name}（ID ${importTarget.id}）` : '—'}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="vc-batch">批次名（可选）</Label>
+              <Input
+                id="vc-batch"
+                value={importBatchName}
+                onChange={(e) => setImportBatchName(e.target.value)}
+                placeholder="如：20260215-京东卡-补仓"
+                disabled={importing}
+              />
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <Label htmlFor="vc-remark">备注（可选）</Label>
+              <Input
+                id="vc-remark"
+                value={importRemark}
+                onChange={(e) => setImportRemark(e.target.value)}
+                placeholder="如：供应商A 第1批"
+                disabled={importing}
+              />
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <Label htmlFor="vc-payload">卡密负载</Label>
+              <Textarea
+                id="vc-payload"
+                value={importPayloadText}
+                onChange={(e) => setImportPayloadText(e.target.value)}
+                className="font-mono text-xs"
+                rows={12}
+                placeholder={`[\n  {\n    \"vendor\": \"JD\",\n    \"card_no\": \"NO-001\",\n    \"card_pwd\": \"PWD-001\",\n    \"expire_at\": \"2027-12-31\",\n    \"redeem_url\": \"https://example.com/redeem\",\n    \"tips\": \"到账后不可退\"\n  }\n]`}
+                disabled={importing}
+              />
+            </div>
+          </div>
+
+          {importResult ? (
+            <div className="rounded-lg border bg-muted/20 p-3 text-sm">
+              <div className="font-medium">最近一次导入结果</div>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-muted-foreground md:grid-cols-4">
+                <div className="tabular-nums">批次: {importResult.batch_id}</div>
+                <div className="tabular-nums">新增: {importResult.imported}</div>
+                <div className="tabular-nums">重复: {importResult.duplicated}</div>
+                <div className="tabular-nums">无效: {importResult.invalid}</div>
+              </div>
+              {importTarget && virtualStocks[importTarget.id] ? (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  当前库存：可用 {virtualStocks[importTarget.id].available} / 总量 {virtualStocks[importTarget.id].total} / 已发 {virtualStocks[importTarget.id].delivered}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setImportDialogOpen(false)} disabled={importing}>
+              取消
+            </Button>
+            <Button type="button" onClick={() => void doImportVirtualCards()} disabled={importing}>
+              {importing ? '导入中…' : '开始导入'}
             </Button>
           </DialogFooter>
         </DialogContent>
