@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ToastProps } from '@/components/ui/toast';
 
 export function useToast() {
@@ -33,7 +33,7 @@ export function useToast() {
     addToast({ type: 'info', title, description });
   }, [addToast]);
 
-  return {
+  return useMemo(() => ({
     toasts,
     addToast,
     removeToast,
@@ -41,5 +41,5 @@ export function useToast() {
     error,
     warning,
     info,
-  };
+  }), [toasts, addToast, removeToast, success, error, warning, info]);
 }

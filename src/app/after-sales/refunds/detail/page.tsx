@@ -56,7 +56,7 @@ const safeStringArray = (value: unknown): string[] => {
 };
 
 function RefundDetailInner() {
-  const toast = useToast();
+  const { toasts, removeToast, success: toastSuccess, error: toastError } = useToast();
   const params = useSearchParams();
   const refundNo = useMemo(() => params.get('refund_no')?.trim() ?? '', [params]);
 
@@ -86,11 +86,11 @@ function RefundDetailInner() {
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
-      toast.error('获取退款详情失败', message);
+      toastError('获取退款详情失败', message);
     } finally {
       setLoading(false);
     }
-  }, [refundNo, toast]);
+  }, [refundNo, toastError]);
 
   useEffect(() => {
     void fetchDetail();
@@ -114,11 +114,11 @@ function RefundDetailInner() {
         throw new Error(resp.err_message || '审核失败');
       }
       setDetail(resp.data);
-      toast.success('审核已提交');
+      toastSuccess('审核已提交');
       setAuditOpen(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      toast.error('审核失败', message);
+      toastError('审核失败', message);
     } finally {
       setAuditing(false);
     }
@@ -128,7 +128,7 @@ function RefundDetailInner() {
 
   return (
     <div className="space-y-4">
-      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       <div className="flex items-start justify-between gap-4">
         <div>
