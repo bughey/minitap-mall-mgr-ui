@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
   
   // 生成 ETag
   generateEtags: true,
+  
+  allowedDevOrigins: ['*.minitap.org', '*.natapp1.cc']
 };
 
 export default nextConfig;
